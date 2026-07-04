@@ -1,0 +1,182 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String  @id @default(uuid()) @db.Uuid
+  username  String  @unique
+  email     String  @unique
+  password  String
+  firstName String
+  lastName  String
+  status    Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String?  @db.Uuid
+  updatedBy String?  @db.Uuid
+
+  roles         UserRole[]
+  refreshTokens RefreshToken[]
+
+  @@map("users")
+}
+
+model Role {
+  id          String  @id @default(uuid()) @db.Uuid
+  name        String  @unique
+  description String?
+  status      Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String?  @db.Uuid
+  updatedBy String?  @db.Uuid
+
+  users         UserRole[]
+  roleModules   RoleModule[]
+  roleMenus     RoleMenu[]
+  refreshTokens RefreshToken[]
+
+  @@map("roles")
+}
+
+model UserRole {
+  id String @id @default(uuid()) @db.Uuid
+
+  userId String @db.Uuid
+  roleId String @db.Uuid
+
+  status Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  createdBy String? @db.Uuid
+  updatedBy String? @db.Uuid
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roleId])
+  @@map("user_roles")
+}
+
+model Module {
+  id          String  @id @default(uuid()) @db.Uuid
+  name        String  @unique
+  description String?
+  icon        String?
+
+  status Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  createdBy String? @db.Uuid
+  updatedBy String? @db.Uuid
+
+  menus       Menu[]
+  roleModules RoleModule[]
+
+  @@map("modules")
+}
+
+model Menu {
+  id String @id @default(uuid()) @db.Uuid
+
+  name  String
+  url   String?
+  icon  String?
+  order Int
+
+  moduleId String  @db.Uuid
+  parentId String? @db.Uuid
+
+  status Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  createdBy String? @db.Uuid
+  updatedBy String? @db.Uuid
+
+  module Module @relation(fields: [moduleId], references: [id])
+
+  parent Menu? @relation("MenuHierarchy", fields: [parentId], references: [id])
+
+  children Menu[] @relation("MenuHierarchy")
+
+  roleMenus RoleMenu[]
+
+  @@map("menus")
+}
+
+model RoleModule {
+  id String @id @default(uuid()) @db.Uuid
+
+  roleId String @db.Uuid
+
+  moduleId String @db.Uuid
+
+  status Boolean @default(true)
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  module Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, moduleId])
+  @@map("role_modules")
+}
+
+model RoleMenu {
+  id String @id @default(uuid()) @db.Uuid
+
+  roleId String @db.Uuid
+
+  menuId String @db.Uuid
+
+  status Boolean @default(true)
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  menu Menu @relation(fields: [menuId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, menuId])
+  @@map("role_menus")
+}
+
+model RefreshToken {
+  id String @id @default(uuid()) @db.Uuid
+
+  token String @unique
+
+  userId String @db.Uuid
+
+  roleId String @db.Uuid
+
+  expiresAt DateTime
+
+  revoked Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
+}
