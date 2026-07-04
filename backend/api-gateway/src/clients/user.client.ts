@@ -3,18 +3,18 @@ import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 
 @Injectable()
-export class HrClient {
+export class UserClient {
 
   constructor(
     private readonly http: HttpService,
   ) {}
 
-  async getEmployees(token: string) {
+  async getProfiles(token: string) {
 
     const response = await firstValueFrom(
 
       this.http.get(
-        `${process.env.HR_SERVICE}/employees`,
+        `${process.env.USER_SERVICE}/profiles`,
         {
           headers: {
             Authorization: token,

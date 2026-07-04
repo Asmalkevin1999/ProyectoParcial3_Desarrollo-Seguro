@@ -1,26 +1,49 @@
-import axios from 'axios';
+import { Injectable } from '@nestjs/common';
+import { HttpService } from '@nestjs/axios';
+import { firstValueFrom } from 'rxjs';
 
+@Injectable()
 export class InventoryClient {
 
-  async products(token: string) {
+  constructor(
+    private readonly http: HttpService,
+  ) {}
 
-    return axios.get(
+  async getProducts(token: string) {
 
-      process.env.INVENTORY_SERVICE +
+    const response = await firstValueFrom(
 
-      '/products',
-
-      {
-
-        headers: {
-
-          Authorization: token
-
-        }
-
-      }
+      this.http.get(
+        `${process.env.INVENTORY_SERVICE}/products`,
+        {
+          headers: {
+            Authorization: token,
+          },
+        },
+      ),
 
     );
+
+    return response.data;
+
+  }
+
+  async getCategories(token: string) {
+
+    const response = await firstValueFrom(
+
+      this.http.get(
+        `${process.env.INVENTORY_SERVICE}/categories`,
+        {
+          headers: {
+            Authorization: token,
+          },
+        },
+      ),
+
+    );
+
+    return response.data;
 
   }
 
