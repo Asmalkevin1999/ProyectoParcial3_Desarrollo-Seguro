@@ -3,18 +3,21 @@ import {
   Post,
   Get,
   Body,
-  Req,
   UseGuards,
 } from '@nestjs/common';
 
 import { AuditService } from './audit.service';
+import { CreateAuditDto } from './dto/create-audit.dto';
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 
 @Controller('audit')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(
+  JwtAuthGuard,
+  RolesGuard,
+)
 export class AuditController {
 
   constructor(
@@ -24,19 +27,19 @@ export class AuditController {
   @Post()
   @Roles('ADMIN')
   create(
-    @Req() req: any,
-    @Body() dto: any,
+    @Body() dto: CreateAuditDto,
   ) {
-    return this.auditService.create({
-      ...dto,
-      userId: req.user.id,
-    });
+
+    return this.auditService.create(dto);
+
   }
 
   @Get()
   @Roles('ADMIN')
   findAll() {
+
     return this.auditService.findAll();
+
   }
 
 }

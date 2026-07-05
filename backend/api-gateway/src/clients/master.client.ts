@@ -1,26 +1,25 @@
 import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
+import { ConfigService } from '@nestjs/config';
+
 import { firstValueFrom } from 'rxjs';
 
 @Injectable()
 export class MasterClient {
 
+  private readonly url: string;
+
   constructor(
+
     private readonly http: HttpService,
-  ) {}
 
-  async login(data: any) {
+    private readonly config: ConfigService,
 
-    const response = await firstValueFrom(
+  ) {
 
-      this.http.post(
-        `${process.env.MASTER_SERVICE}/auth/login`,
-        data,
-      ),
-
-    );
-
-    return response.data;
+this.url = this.config.get<string>(
+  'MASTER_SERVICE',
+)!;
 
   }
 
@@ -29,8 +28,29 @@ export class MasterClient {
     const response = await firstValueFrom(
 
       this.http.post(
-        `${process.env.MASTER_SERVICE}/auth/register`,
+
+        `${this.url}/auth/register`,
+
         data,
+
+      ),
+
+    );
+
+    return response.data;
+
+  }
+
+  async login(data: any) {
+
+    const response = await firstValueFrom(
+
+      this.http.post(
+
+        `${this.url}/auth/login`,
+
+        data,
+
       ),
 
     );

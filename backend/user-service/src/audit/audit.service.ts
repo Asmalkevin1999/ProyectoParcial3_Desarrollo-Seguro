@@ -1,28 +1,46 @@
 import { Injectable } from '@nestjs/common';
-
 import { PrismaService } from '../database/prisma.service';
+import { CreateAuditDto } from './dto/create-audit.dto';
 
 @Injectable()
 export class AuditService {
 
   constructor(
-    private prisma: PrismaService,
+    private readonly prisma: PrismaService,
   ) {}
 
-  create(dto: any) {
+  async create(dto: CreateAuditDto) {
 
-    return this.prisma.userAuditLog.create({
-      data: dto,
+    return await this.prisma.userAuditLog.create({
+
+      data: {
+
+        masterUserId: dto.masterUserId,
+
+        action: dto.action,
+
+        entity: dto.entity,
+
+        description: dto.description,
+
+        ip: dto.ip,
+
+      },
+
     });
 
   }
 
-  findAll() {
+  async findAll() {
 
-    return this.prisma.userAuditLog.findMany({
+    return await this.prisma.userAuditLog.findMany({
+
       orderBy: {
+
         createdAt: 'desc',
+
       },
+
     });
 
   }

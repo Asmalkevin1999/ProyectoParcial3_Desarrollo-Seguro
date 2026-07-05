@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 
 @Injectable()
-export class JwtAuthGuard implements CanActivate {
+export class GatewayGuard implements CanActivate {
 
   canActivate(context: ExecutionContext): boolean {
 

@@ -1,31 +1,67 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+} from '@nestjs/common';
 
 import { PrismaService } from '../database/prisma.service';
-
 import { CreateProfileDto } from './dto/create-profile.dto';
 
 @Injectable()
 export class ProfilesService {
 
   constructor(
-
-    private prisma: PrismaService,
-
+    private readonly prisma: PrismaService,
   ) {}
 
-  create(dto: CreateProfileDto) {
+  async create(dto: CreateProfileDto) {
 
-    return this.prisma.userProfile.create({
+    try {
 
-      data: dto,
+      const profile = await this.prisma.userProfile.create({
 
-    });
+        data: {
+
+          masterUserId: dto.masterUserId,
+
+          phone: dto.phone,
+
+          address: dto.address,
+
+          photo: dto.photo,
+
+          ...(dto.birthDate && {
+            birthDate: new Date(dto.birthDate),
+          }),
+
+        },
+
+      });
+
+      return profile;
+
+    } catch (error: any) {
+
+      console.error(error);
+
+      throw new BadRequestException(
+        error.message,
+      );
+
+    }
 
   }
 
-  findAll() {
+  async findAll() {
 
-    return this.prisma.userProfile.findMany();
+    return await this.prisma.userProfile.findMany({
+
+      orderBy: {
+
+        createdAt: 'desc',
+
+      },
+
+    });
 
   }
 

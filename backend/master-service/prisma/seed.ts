@@ -7,17 +7,17 @@ async function main() {
 
   const password = await bcrypt.hash(
     'Admin2026!',
-    12
+    12,
   );
 
-  // ==========================
-  // ROL ADMIN
-  // ==========================
+  // ===================================
+  // ROLES
+  // ===================================
 
-  const role = await prisma.role.upsert({
+  const adminRole = await prisma.role.upsert({
 
     where: {
-      name: 'ADMIN'
+      name: 'ADMIN',
     },
 
     update: {},
@@ -26,20 +26,38 @@ async function main() {
 
       name: 'ADMIN',
 
-      description: 'Administrador del sistema'
+      description: 'Administrador del sistema',
 
-    }
+    },
 
   });
 
-  // ==========================
-  // USUARIO ADMIN
-  // ==========================
-
-  const user = await prisma.user.upsert({
+  const employeeRole = await prisma.role.upsert({
 
     where: {
-      username: 'admin'
+      name: 'EMPLOYEE',
+    },
+
+    update: {},
+
+    create: {
+
+      name: 'EMPLOYEE',
+
+      description: 'Empleado del sistema',
+
+    },
+
+  });
+
+  // ===================================
+  // USUARIO ADMIN
+  // ===================================
+
+  const adminUser = await prisma.user.upsert({
+
+    where: {
+      username: 'admin',
     },
 
     update: {},
@@ -52,85 +70,91 @@ async function main() {
 
       password,
 
-      firstName: 'Admin',
+      firstName: 'Administrador',
 
-      lastName: 'Master'
+      lastName: 'Sistema',
 
-    }
+      status: true,
 
-  });
-
-  // ==========================
-  // USER ROLE
-  // ==========================
-
-  const userRole = await prisma.userRole.findFirst({
-
-    where: {
-
-      userId: user.id,
-
-      roleId: role.id
-
-    }
+    },
 
   });
 
-  if (!userRole) {
+  // ===================================
+  // USER ROLE ADMIN
+  // ===================================
+
+  const existsUserRole =
+    await prisma.userRole.findFirst({
+
+      where: {
+
+        userId: adminUser.id,
+
+        roleId: adminRole.id,
+
+      },
+
+    });
+
+  if (!existsUserRole) {
 
     await prisma.userRole.create({
 
       data: {
 
-        userId: user.id,
+        userId: adminUser.id,
 
-        roleId: role.id
+        roleId: adminRole.id,
 
-      }
+      },
 
     });
 
   }
 
-  // ==========================
+  // ===================================
   // MODULO ADMINISTRACION
-  // ==========================
+  // ===================================
 
-  const moduleAdmin = await prisma.module.upsert({
+  const adminModule =
+    await prisma.module.upsert({
 
-    where: {
+      where: {
 
-      name: 'Administración'
+        name: 'Administración',
 
-    },
+      },
 
-    update: {},
+      update: {},
 
-    create: {
+      create: {
 
-      name: 'Administración',
+        name: 'Administración',
 
-      description: 'Modulo principal'
+        description:
+          'Módulo principal del sistema',
 
-    }
+      },
 
-  });
+    });
 
-  // ==========================
+  // ===================================
   // MENU USUARIOS
-  // ==========================
+  // ===================================
 
-  const menuUsers = await prisma.menu.findFirst({
+  const usersMenu =
+    await prisma.menu.findFirst({
 
-    where: {
+      where: {
 
-      name: 'Usuarios'
+        name: 'Usuarios',
 
-    }
+      },
 
-  });
+    });
 
-  if (!menuUsers) {
+  if (!usersMenu) {
 
     await prisma.menu.create({
 
@@ -142,29 +166,30 @@ async function main() {
 
         order: 1,
 
-        moduleId: moduleAdmin.id
+        moduleId: adminModule.id,
 
-      }
+      },
 
     });
 
   }
 
-  // ==========================
+  // ===================================
   // MENU ROLES
-  // ==========================
+  // ===================================
 
-  const menuRoles = await prisma.menu.findFirst({
+  const rolesMenu =
+    await prisma.menu.findFirst({
 
-    where: {
+      where: {
 
-      name: 'Roles'
+        name: 'Roles',
 
-    }
+      },
 
-  });
+    });
 
-  if (!menuRoles) {
+  if (!rolesMenu) {
 
     await prisma.menu.create({
 
@@ -176,16 +201,151 @@ async function main() {
 
         order: 2,
 
-        moduleId: moduleAdmin.id
+        moduleId: adminModule.id,
 
-      }
+      },
 
     });
 
   }
 
-  console.log('Administrador creado');
-  console.log('Menus creados');
+  // ===================================
+  // ROLE MODULE ADMIN
+  // ===================================
+
+  const roleModule =
+    await prisma.roleModule.findFirst({
+
+      where: {
+
+        roleId: adminRole.id,
+
+        moduleId: adminModule.id,
+
+      },
+
+    });
+
+  if (!roleModule) {
+
+    await prisma.roleModule.create({
+
+      data: {
+
+        roleId: adminRole.id,
+
+        moduleId: adminModule.id,
+
+      },
+
+    });
+
+  }
+
+  // ===================================
+  // ROLE MENU USUARIOS
+  // ===================================
+
+  const menuUsers =
+    await prisma.menu.findFirst({
+
+      where: {
+
+        name: 'Usuarios',
+
+      },
+
+    });
+
+  if (menuUsers) {
+
+    const roleMenuUsers =
+      await prisma.roleMenu.findFirst({
+
+        where: {
+
+          roleId: adminRole.id,
+
+          menuId: menuUsers.id,
+
+        },
+
+      });
+
+    if (!roleMenuUsers) {
+
+      await prisma.roleMenu.create({
+
+        data: {
+
+          roleId: adminRole.id,
+
+          menuId: menuUsers.id,
+
+        },
+
+      });
+
+    }
+
+  }
+
+  // ===================================
+  // ROLE MENU ROLES
+  // ===================================
+
+  const menuRoles =
+    await prisma.menu.findFirst({
+
+      where: {
+
+        name: 'Roles',
+
+      },
+
+    });
+
+  if (menuRoles) {
+
+    const roleMenuRoles =
+      await prisma.roleMenu.findFirst({
+
+        where: {
+
+          roleId: adminRole.id,
+
+          menuId: menuRoles.id,
+
+        },
+
+      });
+
+    if (!roleMenuRoles) {
+
+      await prisma.roleMenu.create({
+
+        data: {
+
+          roleId: adminRole.id,
+
+          menuId: menuRoles.id,
+
+        },
+
+      });
+
+    }
+
+  }
+
+  console.log('=================================');
+  console.log('Seed ejecutado correctamente');
+  console.log('=================================');
+  console.log('Usuario: admin');
+  console.log('Contraseña: Admin2026!');
+  console.log('Roles: ADMIN y EMPLOYEE');
+  console.log('=================================');
+
 }
 
 main()

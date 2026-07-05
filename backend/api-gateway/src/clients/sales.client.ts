@@ -1,26 +1,59 @@
-import axios from 'axios';
+import { Injectable } from '@nestjs/common';
+import { HttpService } from '@nestjs/axios';
+import { ConfigService } from '@nestjs/config';
 
+import { firstValueFrom } from 'rxjs';
+
+@Injectable()
 export class SalesClient {
 
-  async sales(token: string) {
+  private readonly url: string;
 
-    return axios.get(
+  constructor(
+    private readonly http: HttpService,
+    private readonly config: ConfigService,
+  ) {
 
-      process.env.SALES_SERVICE +
+    this.url = this.config.get<string>('SALES_SERVICE')!;
 
-      '/sales',
+  }
 
-      {
+  create(token: string, dto: any) {
 
-        headers: {
+    return firstValueFrom(
 
-          Authorization: token
+      this.http.post(
 
-        }
+        `${this.url}/sales`,
+        dto,
+        {
+          headers: {
+            Authorization: token,
+          },
+        },
 
-      }
+      ),
 
-    );
+    ).then(r => r.data);
+
+  }
+
+  findAll(token: string) {
+
+    return firstValueFrom(
+
+      this.http.get(
+
+        `${this.url}/sales`,
+        {
+          headers: {
+            Authorization: token,
+          },
+        },
+
+      ),
+
+    ).then(r => r.data);
 
   }
 

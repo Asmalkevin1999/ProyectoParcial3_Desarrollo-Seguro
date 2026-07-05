@@ -1,6 +1,7 @@
 import {
-IsOptional,
-IsString
+  IsOptional,
+  IsString,
+  IsDateString,
 } from 'class-validator';
 
 export class CreateProfileDto {
@@ -19,5 +20,9 @@ export class CreateProfileDto {
   @IsOptional()
   @IsString()
   photo?: string;
+
+  @IsOptional()
+  @IsDateString()
+  birthDate?: string;
 
 }

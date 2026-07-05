@@ -18,6 +18,9 @@ import { LoginDto } from './dto/login.dto';
 
 import { ConfigService } from '@nestjs/config';
 
+import { BadRequestException } from '@nestjs/common';
+
+import { RegisterDto } from './dto/register.dto';
 
 
 @Injectable()
@@ -36,7 +39,100 @@ export class AuthService {
   ) {}
 
 
+async register(data: RegisterDto) {
 
+  const usernameExists = await this.prisma.user.findUnique({
+    where: {
+      username: data.username,
+    },
+  });
+
+  if (usernameExists) {
+    throw new BadRequestException(
+      'El usuario ya existe',
+    );
+  }
+
+  const emailExists = await this.prisma.user.findUnique({
+    where: {
+      email: data.email,
+    },
+  });
+
+  if (emailExists) {
+    throw new BadRequestException(
+      'El correo ya existe',
+    );
+  }
+
+  const hashedPassword = await bcrypt.hash(
+    data.password,
+    10,
+  );
+
+  const role = await this.prisma.role.findFirst({
+    where: {
+      name: 'EMPLOYEE',
+    },
+  });
+
+  if (!role) {
+    throw new BadRequestException(
+      'No existe el rol EMPLOYEE',
+    );
+  }
+
+  const user = await this.prisma.user.create({
+
+    data: {
+
+      username: data.username,
+
+      email: data.email,
+
+      firstName: data.firstName,
+
+      lastName: data.lastName,
+
+      password: hashedPassword,
+
+    },
+
+  });
+
+  await this.prisma.userRole.create({
+
+    data: {
+
+      userId: user.id,
+
+      roleId: role.id,
+
+    },
+
+  });
+
+  return {
+
+    message: 'Usuario registrado correctamente',
+
+    user: {
+
+      id: user.id,
+
+      username: user.username,
+
+      email: user.email,
+
+      firstName: user.firstName,
+
+      lastName: user.lastName,
+
+    },
+
+  };
+
+}
 
 
   async login(data: LoginDto) {
