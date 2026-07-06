@@ -13,7 +13,6 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     strategy:
@@ -31,7 +30,6 @@ jobs:
         working-directory: backend/${{ matrix.service }}
 
     steps:
-
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -44,6 +42,7 @@ jobs:
         run: npm install
 
       - name: Prisma Generate
+        if: matrix.service != 'api-gateway'
         env:
           DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/testdb"
         run: npx prisma generate
