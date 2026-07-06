@@ -31,6 +31,9 @@ jobs:
       run:
         working-directory: backend/${{ matrix.service }}
 
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/testdb
+
     steps:
 
       - name: Checkout repository
