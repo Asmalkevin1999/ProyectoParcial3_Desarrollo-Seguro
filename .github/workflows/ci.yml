@@ -31,24 +31,18 @@ jobs:
       run:
         working-directory: backend/${{ matrix.service }}
 
-    env:
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/testdb
-
     steps:
 
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 22
 
-      - name: Install dependencies
-        run: npm install
+      - run: npm install
 
       - name: Prisma Generate
+        if: matrix.service != 'api-gateway'
         run: npx prisma generate
 
-      - name: Build project
-        run: npm run build
+      - run: npm run build
