@@ -30,8 +30,12 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t ${{ matrix.service }} ./backend/${{ matrix.service }}
-
+          
+          docker build \
+             --build-arg DATABASE_URL=${{ secrets.DATABASE_URL }} \
+             -t ${{ matrix.service }} \
+             ./backend/${{ matrix.service }}
+             
       - name: Scan Docker image
         uses: aquasecurity/trivy-action@master
         with:
