@@ -1,42 +1,149 @@
 import {
-Controller,
-Get
-} from '@nestjs/common';
 
+  Body,
+
+  Controller,
+
+  Delete,
+
+  Get,
+
+  Param,
+
+  Patch,
+
+  Post,
+
+  Req,
+
+  UseGuards,
+
+} from '@nestjs/common';
 
 import { MenusService } from './menus.service';
 
+import { CreateMenuDto } from './dto/create-menu.dto';
+import { UpdateMenuDto } from './dto/update-menu.dto';
 
-import { Roles } from '../auth/decorators/roles.decorator';
-
-
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('menus')
 export class MenusController {
 
+  constructor(
 
+    private readonly menusService: MenusService,
 
-constructor(
+  ) {}
 
-private readonly menusService:MenusService
+  //=========================================
+  // CREAR
+  //=========================================
 
-){}
+  @Post()
+  create(
 
+    @Body() dto: CreateMenuDto,
 
+  ) {
 
+    return this.menusService.create(dto);
 
-@Get('my-menu')
+  }
 
-@Roles('ADMIN')
+  //=========================================
+  // TODOS
+  //=========================================
 
-async myMenu(){
+  @Get()
+  findAll() {
 
+    return this.menusService.findAll();
 
-return this.menusService.getAdminMenu();
+  }
 
+  //=========================================
+  // MENU ADMIN
+  //=========================================
 
-}
+  @Get('tree')
+  getTree() {
 
+    return this.menusService.getAdminMenu();
 
+  }
+
+  //=========================================
+  // MENU DEL USUARIO
+  //=========================================
+
+  @UseGuards(JwtAuthGuard)
+  @Get('my-menu')
+  getMyMenu(
+
+    @Req() req: any,
+
+  ) {
+
+    return this.menusService.getMyMenu(
+
+      req.user.roleId,
+
+    );
+
+  }
+
+  //=========================================
+  // UNO
+  //=========================================
+
+  @Get(':id')
+  findOne(
+
+    @Param('id') id: string,
+
+  ) {
+
+    return this.menusService.findOne(id);
+
+  }
+
+  //=========================================
+  // UPDATE
+  //=========================================
+
+  @Patch(':id')
+  update(
+
+    @Param('id') id: string,
+
+    @Body() dto: UpdateMenuDto,
+
+  ) {
+
+    return this.menusService.update(
+
+      id,
+
+      dto,
+
+    );
+
+  }
+
+  //=========================================
+  // DELETE
+  //=========================================
+
+  @Delete(':id')
+  remove(
+
+    @Param('id') id: string,
+
+  ) {
+
+    return this.menusService.remove(id);
+
+  }
 
 }

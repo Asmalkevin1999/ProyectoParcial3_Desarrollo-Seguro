@@ -5,28 +5,51 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 
+import { JwtService } from '@nestjs/jwt';
+
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
 
-  canActivate(context: ExecutionContext): boolean {
+  constructor(
+    private readonly jwt: JwtService,
+  ) {}
+
+  canActivate(
+    context: ExecutionContext,
+  ): boolean {
 
     const request = context.switchToHttp().getRequest();
 
-    const authorization = request.headers.authorization;
+    const auth =
+      request.headers.authorization;
 
-    if (!authorization) {
-
-      throw new UnauthorizedException('Token requerido');
-
+    if (!auth) {
+      throw new UnauthorizedException(
+        'Token requerido',
+      );
     }
 
-    if (!authorization.startsWith('Bearer ')) {
+    const token = auth.replace(
+      'Bearer ',
+      '',
+    );
 
-      throw new UnauthorizedException('Formato de token inválido');
+    try {
+
+      const payload =
+        this.jwt.verify(token);
+
+      request.user = payload;
+
+      return true;
+
+    } catch {
+
+      throw new UnauthorizedException(
+        'Token inválido',
+      );
 
     }
-
-    return true;
 
   }
 

@@ -1,114 +1,285 @@
 import { Injectable } from '@nestjs/common';
 
-
 import { PrismaService } from '../database/prisma/prisma.service';
 
-
+import { CreateMenuDto } from './dto/create-menu.dto';
+import { UpdateMenuDto } from './dto/update-menu.dto';
 
 @Injectable()
 export class MenusService {
 
+  constructor(
+    private readonly prisma: PrismaService,
+  ) {}
 
+  //=========================================
+  // CREAR
+  //=========================================
 
-constructor(
+  async create(dto: CreateMenuDto) {
 
-private prisma: PrismaService
+    return this.prisma.menu.create({
 
-){}
+      data: dto,
 
+    });
 
+  }
 
+  //=========================================
+  // LISTAR
+  //=========================================
 
-async getAdminMenu(){
+  async findAll() {
 
+    return this.prisma.menu.findMany({
 
+      include: {
 
-return this.prisma.menu.findMany({
+        module: true,
 
+        parent: true,
 
-where:{
+      },
 
+      orderBy: {
 
-status:true
+        order: 'asc',
 
+      },
 
-},
+    });
 
+  }
 
+  //=========================================
+  // BUSCAR UNO
+  //=========================================
 
-select:{
+  async findOne(id: string) {
 
+    return this.prisma.menu.findUnique({
 
-id:true,
+      where: {
 
+        id,
 
-name:true,
+      },
 
+      include: {
 
-url:true,
+        module: true,
 
+        parent: true,
 
-icon:true,
+        children: true,
 
+      },
 
-order:true,
+    });
 
+  }
 
+  //=========================================
+  // ACTUALIZAR
+  //=========================================
 
-children:{
+  async update(
 
+    id: string,
 
-where:{
+    dto: UpdateMenuDto,
 
+  ) {
 
-status:true
+    return this.prisma.menu.update({
 
+      where: {
 
-},
+        id,
 
+      },
 
-select:{
+      data: dto,
 
+    });
 
-id:true,
+  }
 
+  //=========================================
+  // ELIMINAR
+  //=========================================
 
-name:true,
+  async remove(id: string) {
 
+    return this.prisma.menu.delete({
 
-url:true,
+      where: {
 
+        id,
 
-icon:true
+      },
 
+    });
 
-}
+  }
 
+  //=========================================
+  // MENU SEGUN EL ROL
+  //=========================================
 
-}
+  async getMyMenu(roleId: string) {
 
+    const roleModules =
+      await this.prisma.roleModule.findMany({
 
+        where: {
 
-},
+          roleId,
 
+          status: true,
 
+        },
 
-orderBy:{
+        include: {
 
+          module: true,
 
-order:'asc'
+        },
 
+      });
 
-}
+    const roleMenus =
+      await this.prisma.roleMenu.findMany({
 
+        where: {
 
+          roleId,
 
-});
+          status: true,
 
+        },
 
+        include: {
 
-}
+          menu: true,
 
+        },
 
+      });
+
+    return roleModules.map((rm) => ({
+
+      id: rm.module.id,
+
+      name: rm.module.name,
+
+      description: rm.module.description,
+
+      icon: rm.module.icon,
+
+      menus: roleMenus
+
+        .filter(
+
+          (menu) =>
+
+            menu.menu.moduleId === rm.module.id,
+
+        )
+
+        .sort(
+
+          (a, b) =>
+
+            a.menu.order - b.menu.order,
+
+        )
+
+        .map((menu) => ({
+
+          id: menu.menu.id,
+
+          name: menu.menu.name,
+
+          url: menu.menu.url,
+
+          icon: menu.menu.icon,
+
+          order: menu.menu.order,
+
+          parentId: menu.menu.parentId,
+
+        })),
+
+    }));
+
+  }
+
+  //=========================================
+  // MENU ADMIN
+  //=========================================
+
+  async getAdminMenu() {
+
+    return this.prisma.menu.findMany({
+
+      where: {
+
+        status: true,
+
+        parentId: null,
+
+      },
+
+      include: {
+
+        children: {
+
+          where: {
+
+            status: true,
+
+          },
+
+          include: {
+
+            children: {
+
+              where: {
+
+                status: true,
+
+              },
+
+              orderBy: {
+
+                order: 'asc',
+
+              },
+
+            },
+
+          },
+
+          orderBy: {
+
+            order: 'asc',
+
+          },
+
+        },
+
+      },
+
+      orderBy: {
+
+        order: 'asc',
+
+      },
+
+    });
+
+  }
 
 }

@@ -9,8 +9,12 @@ import { PrismaModule } from './database/prisma/prisma.module';
 
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
-import { RolesModule } from './roles/roles.module';
+import { RoleMenusModule } from './role-menus/role-menus.module';
 import { MenusModule } from './menus/menus.module';
+import { ModulesModule } from './modules/modules.module';
+import { RoleModulesModule } from './role-modules/role-modules.module';
+import { UserRolesModule } from './user-roles/user-roles.module';
+import { RolesModule } from './roles/roles.module';
 
 @Module({
   imports: [
@@ -37,9 +41,17 @@ import { MenusModule } from './menus/menus.module';
 
     UsersModule,
 
+    RoleMenusModule,
+
+    MenusModule,
+
+    ModulesModule,
+
     RolesModule,
 
-    MenusModule
+    RoleModulesModule,
+
+    UserRolesModule,
 
   ]
 

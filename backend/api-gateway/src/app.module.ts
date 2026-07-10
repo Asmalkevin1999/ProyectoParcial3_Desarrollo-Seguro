@@ -29,6 +29,12 @@ import { SalesModule } from './sales/sales.module';
 
 import { HrModule } from './hr/hr.module';
 
+import { MenusController } from './menus/menus.controller';
+import { ModulesController } from './modules/modules.controller';
+import { RolesController } from './roles/roles.controller';
+
+import { MasterController } from './controllers/master.controller';
+
 @Module({
   imports: [
 
@@ -75,6 +81,14 @@ import { HrModule } from './hr/hr.module';
     SalesController,
 
     HrController,
+    
+    MenusController,
+
+    ModulesController,
+
+    RolesController,
+
+    MasterController,
 
   ],
 
