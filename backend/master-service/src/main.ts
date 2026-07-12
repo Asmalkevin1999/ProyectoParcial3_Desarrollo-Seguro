@@ -1,59 +1,42 @@
 import { NestFactory } from '@nestjs/core';
+import { ValidationPipe } from '@nestjs/common';
+import helmet from 'helmet';
 
 import { AppModule } from './app.module';
 
-import { ValidationPipe } from '@nestjs/common';
-
-import helmet from 'helmet';
-
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
-
-import { Reflector } from '@nestjs/core';
-
 import { RolesGuard } from './auth/guards/roles.guard';
 
-async function bootstrap(){
+async function bootstrap() {
 
+  const app = await NestFactory.create(AppModule);
 
-const app =
-await NestFactory.create(AppModule);
+  app.use(helmet());
 
+  app.useGlobalPipes(
 
+    new ValidationPipe({
 
-app.use(helmet());
+      whitelist: true,
 
+      forbidNonWhitelisted: true,
 
+      transform: true,
 
-app.useGlobalPipes(
+    }),
 
-new ValidationPipe({
+  );
 
-whitelist:true,
+  app.useGlobalGuards(
 
-forbidNonWhitelisted:true
+    app.get(JwtAuthGuard),
 
-})
+    app.get(RolesGuard),
 
-);
+  );
 
-
-app.useGlobalGuards(
-
-new JwtAuthGuard(
-app.get(Reflector)
-),
-
-
-new RolesGuard(
-app.get(Reflector)
-)
-
-);
-
-await app.listen(3000);
-
+  await app.listen(3000);
 
 }
-
 
 bootstrap();

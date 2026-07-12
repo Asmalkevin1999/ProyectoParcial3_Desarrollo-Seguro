@@ -1,71 +1,167 @@
-import { Injectable } from '@nestjs/common';
-
+import {
+  Injectable,
+  BadRequestException
+} from '@nestjs/common';
 
 import { PrismaService } from '../database/prisma/prisma.service';
 
+import * as bcrypt from 'bcrypt';
 
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
 
+  constructor(
+    private prisma: PrismaService
+  ) {}
 
+  //------------------------------------------------
 
-constructor(
+  async create(dto: CreateUserDto) {
 
-private prisma:PrismaService
+    const exists = await this.prisma.user.findFirst({
 
-){}
+      where: {
 
+        OR: [
 
+          {
+            username: dto.username
+          },
 
+          {
+            email: dto.email
+          }
 
-async findAll(){
+        ]
 
+      }
 
+    });
 
-return this.prisma.user.findMany({
+    if (exists) {
 
-select:{
+      throw new BadRequestException(
+        'Usuario ya existe'
+      );
 
+    }
 
-id:true,
+    const password = await bcrypt.hash(
+      dto.password,
+      10
+    );
 
-username:true,
+    return this.prisma.user.create({
 
-email:true,
+      data: {
 
-firstName:true,
+        username: dto.username,
 
-lastName:true,
+        email: dto.email,
 
-status:true,
+        password,
 
-createdAt:true,
+        firstName: dto.firstName,
 
+        lastName: dto.lastName
 
-roles:{
+      }
 
+    });
 
-include:{
+  }
 
+  //------------------------------------------------
 
-role:true
+  findAll() {
 
+    return this.prisma.user.findMany({
 
-}
+      orderBy: {
 
+        username: 'asc'
 
-}
+      }
 
+    });
 
-}
+  }
 
+  //------------------------------------------------
 
-});
+  findOne(id: string) {
 
+    return this.prisma.user.findUnique({
 
-}
+      where: {
 
+        id
 
+      }
+
+    });
+
+  }
+
+  //------------------------------------------------
+
+  async update(
+
+    id: string,
+
+    dto: UpdateUserDto
+
+  ) {
+
+    const data: any = {
+
+      ...dto
+
+    };
+
+    if (dto.password) {
+
+      data.password = await bcrypt.hash(
+
+        dto.password,
+
+        10
+
+      );
+
+    }
+
+    return this.prisma.user.update({
+
+      where: {
+
+        id
+
+      },
+
+      data
+
+    });
+
+  }
+
+  //------------------------------------------------
+
+  remove(id: string) {
+
+    return this.prisma.user.delete({
+
+      where: {
+
+        id
+
+      }
+
+    });
+
+  }
 
 }

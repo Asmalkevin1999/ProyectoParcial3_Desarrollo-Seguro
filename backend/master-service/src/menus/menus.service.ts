@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-
 import { PrismaService } from '../database/prisma/prisma.service';
 
 import { CreateMenuDto } from './dto/create-menu.dto';
@@ -12,9 +11,9 @@ export class MenusService {
     private readonly prisma: PrismaService,
   ) {}
 
-  //=========================================
+  //====================================================
   // CREAR
-  //=========================================
+  //====================================================
 
   async create(dto: CreateMenuDto) {
 
@@ -26,9 +25,9 @@ export class MenusService {
 
   }
 
-  //=========================================
+  //====================================================
   // LISTAR
-  //=========================================
+  //====================================================
 
   async findAll() {
 
@@ -52,9 +51,9 @@ export class MenusService {
 
   }
 
-  //=========================================
+  //====================================================
   // BUSCAR UNO
-  //=========================================
+  //====================================================
 
   async findOne(id: string) {
 
@@ -80,16 +79,13 @@ export class MenusService {
 
   }
 
-  //=========================================
+  //====================================================
   // ACTUALIZAR
-  //=========================================
+  //====================================================
 
   async update(
-
     id: string,
-
     dto: UpdateMenuDto,
-
   ) {
 
     return this.prisma.menu.update({
@@ -106,9 +102,9 @@ export class MenusService {
 
   }
 
-  //=========================================
+  //====================================================
   // ELIMINAR
-  //=========================================
+  //====================================================
 
   async remove(id: string) {
 
@@ -124,51 +120,61 @@ export class MenusService {
 
   }
 
-  //=========================================
-  // MENU SEGUN EL ROL
-  //=========================================
+  //====================================================
+  // MENU DEL USUARIO
+  //====================================================
 
   async getMyMenu(roleId: string) {
 
-    const roleModules =
-      await this.prisma.roleModule.findMany({
+    const roleModules = await this.prisma.roleModule.findMany({
 
-        where: {
+      where: {
 
-          roleId,
+        roleId,
 
-          status: true,
+        status: true,
 
-        },
-
-        include: {
-
-          module: true,
-
-        },
-
-      });
-
-    const roleMenus =
-      await this.prisma.roleMenu.findMany({
-
-        where: {
-
-          roleId,
+        module: {
 
           status: true,
 
         },
 
-        include: {
+      },
 
-          menu: true,
+      include: {
+
+        module: true,
+
+      },
+
+    });
+
+    const roleMenus = await this.prisma.roleMenu.findMany({
+
+      where: {
+
+        roleId,
+
+        status: true,
+
+        menu: {
+
+          status: true,
 
         },
 
-      });
+      },
 
-    return roleModules.map((rm) => ({
+      include: {
+
+        menu: true,
+
+      },
+
+    });
+
+    const response = roleModules.map((rm) => ({
 
       id: rm.module.id,
 
@@ -181,44 +187,40 @@ export class MenusService {
       menus: roleMenus
 
         .filter(
-
-          (menu) =>
-
-            menu.menu.moduleId === rm.module.id,
-
+          (item) =>
+            item.menu.moduleId === rm.module.id,
         )
 
         .sort(
-
           (a, b) =>
-
             a.menu.order - b.menu.order,
-
         )
 
-        .map((menu) => ({
+        .map((item) => ({
 
-          id: menu.menu.id,
+          id: item.menu.id,
 
-          name: menu.menu.name,
+          name: item.menu.name,
 
-          url: menu.menu.url,
+          url: item.menu.url,
 
-          icon: menu.menu.icon,
+          icon: item.menu.icon,
 
-          order: menu.menu.order,
+          order: item.menu.order,
 
-          parentId: menu.menu.parentId,
+          parentId: item.menu.parentId,
 
         })),
 
     }));
 
+    return response;
+
   }
 
-  //=========================================
+  //====================================================
   // MENU ADMIN
-  //=========================================
+  //====================================================
 
   async getAdminMenu() {
 

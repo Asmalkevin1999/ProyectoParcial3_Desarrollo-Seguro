@@ -1,0 +1,15 @@
+<div class="container">
+
+    <h2>Seleccione un Rol</h2>
+
+    <button
+
+        *ngFor="let role of roles"
+
+        (click)="selectRole(role)">
+
+        {{role.name}}
+
+    </button>
+
+</div>

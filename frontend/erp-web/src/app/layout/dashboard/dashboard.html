@@ -1,0 +1,87 @@
+<div class="layout">
+
+    <header class="header">
+
+        <div class="logo">
+
+            ERP MASTER
+
+        </div>
+
+        <div class="user">
+
+            <span>
+
+                {{username}}
+
+            </span>
+
+            <span class="role">
+
+                {{role}}
+
+            </span>
+
+            <button
+            (click)="logout()">
+
+                Salir
+
+            </button>
+
+        </div>
+
+    </header>
+
+    <div class="container">
+
+        <aside class="sidebar">
+
+            <div
+            *ngFor="let module of modules">
+
+                <h3>
+
+                    {{module.name}}
+
+                </h3>
+
+                <button
+
+                *ngFor="let menu of module.menus"
+
+                (click)="go(menu.url)">
+
+                    {{menu.name}}
+
+                </button>
+
+            </div>
+
+        </aside>
+
+        <main class="content">
+
+            <h1>
+
+                Bienvenido
+
+            </h1>
+
+            <p>
+
+                Sistema Administrativo
+
+            </p>
+
+        </main>
+
+    </div>
+
+    <footer>
+
+        Universidad ESPE © 2026
+
+    </footer>
+
+</div>

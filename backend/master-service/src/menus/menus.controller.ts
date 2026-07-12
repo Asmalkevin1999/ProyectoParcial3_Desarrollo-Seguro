@@ -77,22 +77,17 @@ export class MenusController {
   // MENU DEL USUARIO
   //=========================================
 
-  @UseGuards(JwtAuthGuard)
-  @Get('my-menu')
-  getMyMenu(
+@Get('my-menu')
+@UseGuards(JwtAuthGuard)
+getMyMenu(@Req() req: any) {
 
-    @Req() req: any,
+  console.log(req.user);
 
-  ) {
+  return this.menusService.getMyMenu(
+    req.user.roleId,
+  );
 
-    return this.menusService.getMyMenu(
-
-      req.user.roleId,
-
-    );
-
-  }
-
+}
   //=========================================
   // UNO
   //=========================================
