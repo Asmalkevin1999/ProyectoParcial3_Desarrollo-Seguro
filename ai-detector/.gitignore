@@ -1,0 +1,14 @@
+.env
+venv/
+.vscode/
+__pycache__/
+*.pyc
+
+# Dataset original Juliet
+data/juliet/
+models/*.pkl
+models/*.joblib
+# Archivos temporales
+*.log
+
+.pytest_cache/

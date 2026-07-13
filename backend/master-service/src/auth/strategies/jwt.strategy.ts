@@ -25,14 +25,16 @@ constructor(
 
 async validate(payload:any){
 
-console.log(payload);
-
 return{
 
-userId:payload.sub,
+id:payload.sub,
+
 username:payload.username,
+
 roleId:payload.roleId,
+
 role:payload.role,
+
 type:payload.type
 
 };

@@ -66,6 +66,29 @@ export const routes: Routes = [
       import('./modules/profile/profile')
         .then(m=>m.ProfileComponent),
     canActivate:[authGuard]
-  }
+  },
+  {
+  path:'user-roles',
+  loadComponent:()=>
+    import('./modules/user-roles/user-roles')
+      .then(m=>m.UserRolesComponent),
+  canActivate:[authGuard]
+},
+
+{
+  path:'role-modules',
+  loadComponent:()=>
+    import('./modules/role-modules/role-modules')
+      .then(m=>m.RoleModulesComponent),
+  canActivate:[authGuard]
+},
+
+{
+  path:'role-menus',
+  loadComponent:()=>
+    import('./modules/role-menus/role-menus')
+      .then(m=>m.RoleMenusComponent),
+  canActivate:[authGuard]
+},
 
 ];

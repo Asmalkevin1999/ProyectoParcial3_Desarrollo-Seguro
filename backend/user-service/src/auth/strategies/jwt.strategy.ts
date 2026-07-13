@@ -32,6 +32,8 @@ config.get<string>('JWT_ACCESS_SECRET')!
 
 async validate(payload: any) {
 
+  console.log('PAYLOAD:', payload);
+
   return {
     id: payload.id || payload.sub,
     username: payload.username,

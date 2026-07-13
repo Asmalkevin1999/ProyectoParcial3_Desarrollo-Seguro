@@ -330,23 +330,23 @@ async selectRole(
 
   const userRole = await this.prisma.userRole.findFirst({
 
-    where: {
+where:{
 
-      userId: user.userId,
+userId:user.id,
 
-      roleId,
+roleId,
 
-      status: true,
+status:true
 
-    },
+},
 
-    include: {
+include:{
 
-      role: true,
+role:true
 
-    },
+}
 
-  });
+});
 
   if (!userRole) {
 

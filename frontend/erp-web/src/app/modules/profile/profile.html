@@ -1,3 +1,155 @@
-<h1>Perfil</h1>
+<div class="container-fluid mt-4">
 
-<p>Módulo de Perfil</p>
+    <div class="card shadow">
+
+        <div class="card-header bg-primary text-white">
+
+            <h4>
+
+                Mi Perfil
+
+            </h4>
+
+        </div>
+
+        <div class="card-body">
+
+            <form
+                [formGroup]="form"
+                (ngSubmit)="save()">
+
+                <div class="row">
+
+                    <div class="col-md-6 mb-3">
+
+                        <label>
+
+                            Usuario
+
+                        </label>
+
+                        <input
+                            class="form-control"
+                            formControlName="username">
+
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+
+                        <label>
+
+                            Correo
+
+                        </label>
+
+                        <input
+                            class="form-control"
+                            formControlName="email">
+
+                    </div>
+
+                </div>
+
+                <div class="row">
+
+                    <div class="col-md-6 mb-3">
+
+                        <label>
+
+                            Nombre
+
+                        </label>
+
+                        <input
+                            class="form-control"
+                            formControlName="firstName">
+
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+
+                        <label>
+
+                            Apellido
+
+                        </label>
+
+                        <input
+                            class="form-control"
+                            formControlName="lastName">
+
+                    </div>
+
+                </div>
+
+                <button
+                    class="btn btn-success">
+
+                    Guardar
+
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+    <div class="card shadow mt-4">
+
+        <div class="card-header bg-dark text-white">
+
+            Cambiar Contraseña
+
+        </div>
+
+        <div class="card-body">
+
+            <form
+                [formGroup]="passwordForm"
+                (ngSubmit)="changePassword()">
+
+                <div class="mb-3">
+
+                    <label>
+
+                        Contraseña Actual
+
+                    </label>
+
+                    <input
+                        type="password"
+                        class="form-control"
+                        formControlName="currentPassword">
+
+                </div>
+
+                <div class="mb-3">
+
+                    <label>
+
+                        Nueva Contraseña
+
+                    </label>
+
+                    <input
+                        type="password"
+                        class="form-control"
+                        formControlName="newPassword">
+
+                </div>
+
+                <button
+                    class="btn btn-primary">
+
+                    Actualizar Contraseña
+
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>

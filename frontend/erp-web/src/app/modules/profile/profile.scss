@@ -1,3 +1,18 @@
-h1{
-  margin-bottom:20px;
+.container-fluid {
+  padding: 25px;
+}
+
+.card {
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 5px 15px rgba(0,0,0,.08);
+}
+
+.form-control {
+  height: 45px;
+  border-radius: 8px;
+}
+
+.btn {
+  border-radius: 8px;
 }
