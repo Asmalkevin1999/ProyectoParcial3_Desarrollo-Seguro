@@ -1,8 +1,8 @@
-<div class="container-fluid p-0 bg-light min-vh-100">
-  <header class="bg-dark text-white px-4 py-3 d-flex justify-content-between align-items-center">
+<div class="container-fluid p-0 bg-light min-vh-100 d-flex flex-column">
+  <header class="header-shell text-white px-4 py-3 d-flex justify-content-between align-items-center">
     <div>
-      <h4 class="mb-0">ERP Master</h4>
-      <small class="text-white-50">Workspace seguro por rol</small>
+      <h4 class="mb-0">RetailOps</h4>
+      <small class="text-white-50">Microservicio de ventas • panel operativo</small>
     </div>
     <div class="d-flex align-items-center gap-3">
       <div class="text-end">
@@ -13,9 +13,9 @@
     </div>
   </header>
 
-  <div class="row g-0 min-vh-100">
+  <div class="row g-0 flex-grow-1">
     <aside class="col-md-3 bg-white border-end p-3">
-      <h5 class="fw-bold mb-3">Menú dinámico</h5>
+      <h5 class="fw-bold mb-3">Módulos operativos</h5>
 
       <div *ngIf="error" class="alert alert-danger py-2">{{ error }}</div>
 
@@ -31,47 +31,211 @@
         <button class="btn btn-sm btn-outline-primary" (click)="loadMenu()">Reintentar</button>
       </div>
 
-      <div *ngFor="let module of modules" class="mb-4">
-        <div class="fw-bold text-primary mb-2">{{ module.name }}</div>
+      <div class="accordion accordion-flush" *ngIf="!loading && !error">
+        <div *ngFor="let module of modules" class="accordion-item border-0 mb-2 rounded-3 shadow-sm">
+          <h2 class="accordion-header">
+            <button class="accordion-button collapsed px-3 py-3" type="button" (click)="toggleModule(module)">
+              <span class="d-flex align-items-center gap-2">
+                <span class="module-badge">{{ module.icon || '🧩' }}</span>
+                <span>
+                  <span class="fw-bold d-block">{{ module.name }}</span>
+                  <small class="text-muted">{{ module.description }}</small>
+                </span>
+              </span>
+            </button>
+          </h2>
 
-        <div *ngIf="module.menus?.length; else noMenus">
-          <div class="list-group">
-            <ng-container *ngFor="let menu of module.menus">
-              <button
-                class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
-                [class.font-weight-bold]="menu.children?.length"
-                (click)="go(menu.url)"
-              >
-                <span>{{ menu.name }}</span>
-                <small *ngIf="menu.children?.length" class="badge bg-secondary rounded-pill">
-                  {{ menu.children.length }}
-                </small>
-              </button>
+          <div class="accordion-collapse" [class.show]="expandedModuleId === module.id">
+            <div class="accordion-body p-0">
+              <div *ngIf="module.menus?.length; else noMenus" class="list-group list-group-flush">
+                <ng-container *ngFor="let menu of module.menus">
+                  <button
+                    class="list-group-item list-group-item-action submenu-item"
+                    (click)="menu.children?.length ? toggleMenu(menu, module) : openWorkspace(menu, module)"
+                  >
+                    <span class="d-flex justify-content-between align-items-center">
+                      <span class="d-flex align-items-center gap-2">
+                        <span class="submenu-icon">{{ menu.icon || '▸' }}</span>
+                        <span>{{ menu.name }}</span>
+                      </span>
+                      <span class="badge rounded-pill bg-light text-dark">
+                        {{ menu.children?.length ? 'Submenú' : 'Vista' }}
+                      </span>
+                    </span>
+                  </button>
 
-              <div *ngIf="menu.children?.length" class="ps-3">
-                <button
-                  *ngFor="let child of menu.children"
-                  class="btn btn-sm btn-outline-primary w-100 text-start mb-1"
-                  (click)="go(child.url)"
-                >
-                  {{ child.name }}
-                </button>
+                  <div *ngIf="menu.children?.length && isMenuExpanded(menu.id)" class="ps-4 border-start ms-3 my-2">
+                    <button
+                      *ngFor="let child of menu.children"
+                      class="btn btn-link text-start p-0 py-2 text-muted"
+                      (click)="openWorkspace(child, module)"
+                    >
+                      <span class="d-flex align-items-center gap-2">
+                        <span class="submenu-icon small">{{ child.icon || '•' }}</span>
+                        <span>{{ child.name }}</span>
+                      </span>
+                    </button>
+                  </div>
+                </ng-container>
               </div>
-            </ng-container>
+
+              <ng-template #noMenus>
+                <div class="text-muted px-3 py-2">No hay menús disponibles para este módulo.</div>
+              </ng-template>
+            </div>
           </div>
         </div>
-
-        <ng-template #noMenus>
-          <div class="text-muted">No hay menús disponibles para este módulo.</div>
-        </ng-template>
       </div>
     </aside>
 
     <main class="col-md-9 p-4">
-      <div class="card shadow-sm border-0 rounded-4 p-4">
-        <h2 class="fw-bold">Bienvenido al workspace</h2>
-        <p class="text-muted mb-0">La navegación se construye desde el backend según el rol activo.</p>
+      <div class="workspace-card shadow-sm border-0 rounded-4 p-4">
+        <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+          <div class="d-flex align-items-start gap-3">
+            <div class="workspace-icon-large">{{ workspaceIcon }}</div>
+            <div>
+              <h2 class="fw-bold mb-1">{{ workspaceTitle }}</h2>
+              <p class="text-muted mb-0">{{ workspaceSubtitle }}</p>
+            </div>
+          </div>
+          <span class="service-badge">{{ workspaceMicroservice }}</span>
+        </div>
+
+        <ng-container [ngSwitch]="activeView">
+          <div *ngSwitchCase="'users'" class="mb-4">
+            <app-users></app-users>
+          </div>
+
+          <div *ngSwitchCase="'roles'" class="mb-4">
+            <app-roles></app-roles>
+          </div>
+
+          <div *ngSwitchCase="'menus'" class="mb-4">
+            <app-menus></app-menus>
+          </div>
+
+          <div *ngSwitchCase="'modules'" class="mb-4">
+            <app-modules></app-modules>
+          </div>
+
+          <div *ngSwitchCase="'profile'" class="mb-4">
+            <app-profile></app-profile>
+          </div>
+
+          <div *ngSwitchDefault>
+            <div class="row g-3">
+              <div class="col-lg-7">
+                <div class="card border-0 rounded-4 p-3 h-100 bg-light">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5 class="fw-bold mb-0">Resumen operativo</h5>
+                <span class="badge rounded-pill bg-success-subtle text-success">En vivo</span>
+              </div>
+              <p class="text-muted mb-3">{{ workspaceSummary }}</p>
+              <ul class="list-group list-group-flush">
+                <li *ngFor="let item of workspaceBullets" class="list-group-item px-0 py-2">{{ item }}</li>
+              </ul>
+            </div>
+          </div>
+
+              <div class="col-lg-5">
+                <div class="card border-0 rounded-4 p-3 h-100 bg-primary-subtle">
+                  <h5 class="fw-bold mb-2">Vista del servicio</h5>
+                  <p class="text-muted mb-3">Este panel simula la experiencia de un módulo comercial dentro del microservicio de ventas, con contenido profesional y orientado a operaciones.</p>
+                  <div class="d-flex flex-wrap gap-2">
+                    <span class="chip">Acceso por rol</span>
+                    <span class="chip">Ventas</span>
+                    <span class="chip">Operaciones</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="row g-3 mt-1">
+          <div class="col-xl-8">
+            <div class="card border-0 rounded-4 p-3">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0">Indicadores clave</h5>
+                <span class="text-muted small">Últimas 24 horas</span>
+              </div>
+              <div class="row g-3">
+                <div *ngFor="let metric of metrics" class="col-md-4">
+                  <div class="metric-card">
+                    <small class="text-muted">{{ metric.label }}</small>
+                    <div class="metric-value">{{ metric.value }}</div>
+                    <div class="metric-change">{{ metric.change }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-xl-4">
+            <div class="card border-0 rounded-4 p-3">
+              <h5 class="fw-bold mb-3">Notas de implementación</h5>
+              <ul class="list-group list-group-flush">
+                <li *ngFor="let note of implementationNotes" class="list-group-item px-0 py-2 small text-muted">{{ note }}</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+            <div class="card border-0 rounded-4 p-3 mt-3">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0">Pedidos recientes</h5>
+                <button class="btn btn-sm btn-outline-primary">Ver todos</button>
+              </div>
+              <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                  <thead>
+                    <tr>
+                      <th scope="col">Pedido</th>
+                      <th scope="col">Cliente</th>
+                      <th scope="col">Total</th>
+                      <th scope="col">Estado</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let order of recentOrders">
+                      <td class="fw-semibold">{{ order.id }}</td>
+                      <td>{{ order.customer }}</td>
+                      <td>{{ order.total }}</td>
+                      <td>
+                        <span class="status-badge" [ngClass]="order.status === 'Pagado' ? 'status-paid' : order.status === 'En proceso' ? 'status-processing' : 'status-pending'">
+                          {{ order.status }}
+                        </span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="card border-0 rounded-4 p-3 mt-3">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0">Especificación de endpoints</h5>
+                <span class="text-muted small">Microservicio maestro • negocio</span>
+              </div>
+              <div class="row g-3">
+                <div class="col-md-4" *ngFor="let group of endpointSpecs">
+                  <div class="spec-card">
+                    <h6 class="fw-bold mb-2">{{ group.title }}</h6>
+                    <ul class="mb-0 ps-3">
+                      <li *ngFor="let item of group.items" class="small text-muted mb-2">{{ item }}</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </ng-container>
       </div>
     </main>
   </div>
+
+  <footer class="dashboard-footer px-4 py-3 text-white">
+    <div class="d-flex justify-content-between align-items-center w-100">
+      <span>RetailOps • Microservicio de ventas • Panel profesional</span>
+      <span class="text-white-50">Sincronización: 08:45</span>
+    </div>
+  </footer>
 </div>

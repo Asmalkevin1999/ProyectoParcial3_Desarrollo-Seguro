@@ -130,6 +130,9 @@ model RoleModule {
 
   updatedAt DateTime @updatedAt
 
+  createdBy String? @db.Uuid
+  updatedBy String? @db.Uuid
+
   role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
 
   module Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
@@ -150,6 +153,9 @@ model RoleMenu {
   createdAt DateTime @default(now())
 
   updatedAt DateTime @updatedAt
+
+  createdBy String? @db.Uuid
+  updatedBy String? @db.Uuid
 
   role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
 

@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../database/prisma/prisma.service';
 
 import { CreateModuleDto } from './dto/create-module.dto';
@@ -6,42 +10,71 @@ import { UpdateModuleDto } from './dto/update-module.dto';
 
 @Injectable()
 export class ModulesService {
+  constructor(private prisma: PrismaService) {}
 
-  constructor(
-    private prisma: PrismaService,
-  ) {}
+  async create(dto: CreateModuleDto) {
+    const existing = await this.prisma.module.findFirst({
+      where: { name: dto.name, status: true },
+    });
 
-  create(dto: CreateModuleDto) {
+    if (existing) {
+      throw new BadRequestException('El módulo ya existe');
+    }
+
     return this.prisma.module.create({
-      data: dto,
+      data: {
+        ...dto,
+        status: true,
+      },
     });
   }
 
   findAll() {
     return this.prisma.module.findMany({
-      orderBy: {
-        name: 'asc',
-      },
+      where: { status: true },
+      orderBy: { name: 'asc' },
     });
   }
 
-  findOne(id: string) {
-    return this.prisma.module.findUnique({
-      where: { id },
+  async findOne(id: string) {
+    const module = await this.prisma.module.findFirst({
+      where: { id, status: true },
     });
+
+    if (!module) {
+      throw new NotFoundException('Módulo no encontrado');
+    }
+
+    return module;
   }
 
-  update(id: string, dto: UpdateModuleDto) {
+  async update(id: string, dto: UpdateModuleDto) {
+    const existing = await this.prisma.module.findFirst({
+      where: { id, status: true },
+    });
+
+    if (!existing) {
+      throw new NotFoundException('Módulo no encontrado');
+    }
+
     return this.prisma.module.update({
       where: { id },
       data: dto,
     });
   }
 
-  remove(id: string) {
-    return this.prisma.module.delete({
+  async remove(id: string) {
+    const existing = await this.prisma.module.findFirst({
+      where: { id, status: true },
+    });
+
+    if (!existing) {
+      throw new NotFoundException('Módulo no encontrado');
+    }
+
+    return this.prisma.module.update({
       where: { id },
+      data: { status: false, updatedAt: new Date() },
     });
   }
-
 }
