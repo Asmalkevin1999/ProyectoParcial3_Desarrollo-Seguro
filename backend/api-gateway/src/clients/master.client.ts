@@ -12,7 +12,7 @@ export class MasterClient {
     private readonly http: HttpService,
     private readonly config: ConfigService,
   ) {
-    this.url = this.config.get<string>('MASTER_SERVICE')!;
+    this.url = (this.config.get<string>('MASTER_SERVICE') || 'http://master-service:3000').replace(/\/$/, '');
   }
 
   //================================================
@@ -23,7 +23,7 @@ export class MasterClient {
 
     const response = await firstValueFrom(
       this.http.post(
-        `${this.url}/auth/register`,
+        `${this.url}/api/auth/register`,
         data,
       ),
     );
@@ -35,7 +35,7 @@ export class MasterClient {
 
     const response = await firstValueFrom(
       this.http.post(
-        `${this.url}/auth/login`,
+        `${this.url}/api/auth/login`,
         data,
       ),
     );
@@ -50,7 +50,7 @@ export class MasterClient {
 
     const response = await firstValueFrom(
       this.http.post(
-        `${this.url}/auth/select-role`,
+        `${this.url}/api/auth/select-role`,
         {
           roleId,
         },
@@ -73,7 +73,7 @@ export class MasterClient {
 
     const response = await firstValueFrom(
       this.http.get(
-        `${this.url}/modules`,
+        `${this.url}/api/modules`,
         {
           headers: {
             Authorization: token,
@@ -93,7 +93,7 @@ export class MasterClient {
 
     const response = await firstValueFrom(
       this.http.get(
-        `${this.url}/menus/my-menu`,
+        `${this.url}/api/menus/my-menu`,
         {
           headers: {
             Authorization: token,
@@ -113,7 +113,7 @@ export class MasterClient {
 
     const response = await firstValueFrom(
       this.http.get(
-        `${this.url}/users`,
+        `${this.url}/api/users`,
         {
           headers: {
             Authorization: token,
@@ -133,7 +133,7 @@ export class MasterClient {
 
     const response = await firstValueFrom(
       this.http.get(
-        `${this.url}/roles`,
+        `${this.url}/api/roles`,
         {
           headers: {
             Authorization: token,

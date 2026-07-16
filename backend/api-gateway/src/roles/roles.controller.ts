@@ -15,8 +15,7 @@ export class RolesController {
 
   @Get()
   findAll(
-    @Headers('authorization')
-    token: string,
+    @Headers('authorization') token: string,
   ) {
     return this.masterClient.getRoles(token);
   }

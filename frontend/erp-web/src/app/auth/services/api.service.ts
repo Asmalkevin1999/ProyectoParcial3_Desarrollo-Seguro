@@ -33,6 +33,7 @@ export class ApiService {
   post(
     url: string,
     body: any,
+    options?: { headers?: HttpHeaders },
   ) {
 
     return this.http.post(
@@ -42,7 +43,7 @@ export class ApiService {
       body,
 
       {
-        headers: this.headers(),
+        headers: options?.headers ?? this.headers(),
       },
 
     );
@@ -85,7 +86,8 @@ export class ApiService {
   private headers() {
 
     const token =
-      localStorage.getItem('accessToken');
+      localStorage.getItem('accessToken') ||
+      localStorage.getItem('tempToken');
 
     return new HttpHeaders({
 

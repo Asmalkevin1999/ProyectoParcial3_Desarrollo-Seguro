@@ -13,6 +13,10 @@ import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 
+function getSecret(config: ConfigService, key: string, fallback?: string) {
+  return config.get<string>(key) || fallback || '';
+}
+
 @Injectable()
 export class AuthService {
 
@@ -159,27 +163,19 @@ export class AuthService {
     }
 
     const tempToken = await this.jwt.signAsync(
-
       {
-
         sub: user.id,
-
         username: user.username,
-
         type: 'TEMP',
-
       },
-
       {
-
-        secret: this.config.get<string>(
+        secret: getSecret(
+          this.config,
           'jwt.accessSecret',
+          process.env.JWT_ACCESS_SECRET || 'MasterGatewayAccessSecret2026_ESPE_Parcial3',
         ),
-
         expiresIn: '5m',
-
       },
-
     );
 
     return {
@@ -323,119 +319,82 @@ async selectRole(
   if (user.type !== 'TEMP') {
 
     throw new UnauthorizedException(
-      'Token inválido',
+      'Token inválido o expirado',
     );
 
+  }
+
+  if (!roleId || typeof roleId !== 'string' || roleId.trim() === '') {
+    throw new BadRequestException(
+      'roleId es requerido y debe ser una cadena válida',
+    );
   }
 
   const userRole = await this.prisma.userRole.findFirst({
-
-where:{
-
-userId:user.id,
-
-roleId,
-
-status:true
-
-},
-
-include:{
-
-role:true
-
-}
-
-});
+    where: {
+      userId: user.id,
+      roleId: roleId.trim(),
+      status: true,
+    },
+    include: {
+      role: true,
+    },
+  });
 
   if (!userRole) {
-
     throw new UnauthorizedException(
-      'Rol no asignado',
+      'El rol no está asignado al usuario o no está activo',
     );
-
   }
 
   const payload = {
-
-    sub: user.userId,
-
+    sub: user.id,
     username: user.username,
-
     roleId: userRole.role.id,
-
     role: userRole.role.name,
-
   };
 
   const accessToken = await this.jwt.signAsync(
-
     payload,
-
     {
-
-      secret: this.config.get<string>(
-
+      secret: getSecret(
+        this.config,
         'jwt.accessSecret',
-
+        process.env.JWT_ACCESS_SECRET || 'MasterGatewayAccessSecret2026_ESPE_Parcial3',
       ),
-
       expiresIn: '15m',
-
     },
-
   );
 
   const refreshToken = await this.jwt.signAsync(
-
     payload,
-
     {
-
-      secret: this.config.get<string>(
-
+      secret: getSecret(
+        this.config,
         'jwt.refreshSecret',
-
+        process.env.JWT_REFRESH_SECRET || 'MasterGatewayRefreshSecret2026_ESPE_Parcial3',
       ),
-
       expiresIn: '7d',
-
     },
-
   );
 
   await this.prisma.refreshToken.create({
-
     data: {
-
       token: refreshToken,
-
-      userId: user.userId,
-
+      userId: user.id,
       roleId: userRole.role.id,
-
       expiresAt: new Date(
-
         Date.now() +
-
         7 * 24 * 60 * 60 * 1000,
-
       ),
-
     },
-
   });
 
   return {
-
-    message: 'Login correcto',
-
+    message: 'Rol seleccionado correctamente',
     accessToken,
-
     refreshToken,
-
     role: userRole.role.name,
-
   };
 
 }

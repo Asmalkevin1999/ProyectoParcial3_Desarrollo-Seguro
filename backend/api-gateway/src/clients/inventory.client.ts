@@ -17,9 +17,9 @@ export class InventoryClient {
 
   ) {
 
-    this.url = this.config.get<string>(
+    this.url = (this.config.get<string>(
       'INVENTORY_SERVICE',
-    )!;
+    ) || 'http://inventory-service:3002').replace(/\/$/, '');
 
   }
 
@@ -29,7 +29,7 @@ export class InventoryClient {
 
       this.http.get(
 
-        `${this.url}/categories`,
+        `${this.url}/api/categories`,
 
         {
 
@@ -55,7 +55,7 @@ export class InventoryClient {
 
       this.http.post(
 
-        `${this.url}/categories`,
+        `${this.url}/api/categories`,
 
         dto,
 
@@ -83,7 +83,7 @@ export class InventoryClient {
 
       this.http.get(
 
-        `${this.url}/products`,
+        `${this.url}/api/products`,
 
         {
 
@@ -109,7 +109,7 @@ export class InventoryClient {
 
       this.http.post(
 
-        `${this.url}/products`,
+        `${this.url}/api/products`,
 
         dto,
 

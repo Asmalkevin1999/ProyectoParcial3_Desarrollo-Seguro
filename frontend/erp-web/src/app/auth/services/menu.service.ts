@@ -1,39 +1,14 @@
 import { Injectable } from '@angular/core';
-import {
-  HttpClient,
-  HttpHeaders
-} from '@angular/common/http';
+
+import { ApiService } from './api.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class MenuService {
-
-  private api =
-    'http://localhost:3005/menus';
-
-  constructor(
-    private http: HttpClient
-  ) {}
+  constructor(private api: ApiService) {}
 
   getMyMenu() {
-
-    const token =
-      localStorage.getItem(
-        'accessToken'
-      );
-
-    return this.http.get(
-      `${this.api}/my-menu`,
-      {
-        headers:
-          new HttpHeaders({
-            Authorization:
-              `Bearer ${token}`
-          })
-      }
-    );
-
+    return this.api.get('/api/menus/my-menu');
   }
-
 }

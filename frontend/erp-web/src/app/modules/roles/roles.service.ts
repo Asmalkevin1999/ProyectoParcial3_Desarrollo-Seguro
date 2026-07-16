@@ -11,7 +11,7 @@ export class RolesService {
 
   private http = inject(HttpClient);
 
-  private api = `${environment.apiUrl}/roles`;
+  private api = `${environment.apiUrl}/api/roles`;
 
   getRoles(): Observable<any[]> {
     return this.http.get<any[]>(this.api);

@@ -11,7 +11,7 @@ export class MenusService {
 
   private http = inject(HttpClient);
 
-  private api = `${environment.apiUrl}/menus`;
+  private api = `${environment.apiUrl}/api/menus`;
 
   getMenus(): Observable<any[]> {
     return this.http.get<any[]>(this.api);

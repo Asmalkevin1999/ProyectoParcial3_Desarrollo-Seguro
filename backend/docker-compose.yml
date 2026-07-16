@@ -23,6 +23,25 @@ services:
       - "3000:3000"
     env_file:
       - ./master-service/.env
+    environment:
+      DATABASE_URL: postgresql://master_user:Master2026!@postgres:5432/master_gateway?schema=public
+      JWT_ACCESS_SECRET: MasterGatewayAccessSecret2026_ESPE_Parcial3
+      JWT_REFRESH_SECRET: MasterGatewayRefreshSecret2026_ESPE_Parcial3
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres
+    restart: always
+    environment:
+      POSTGRES_DB: master_gateway
+      POSTGRES_USER: master_user
+      POSTGRES_PASSWORD: Master2026!
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
 
   user-service:
     build: ./user-service
@@ -59,3 +78,6 @@ services:
       - "3004:3004"
     env_file:
       - ./hr-service/.env
+
+volumes:
+  postgres_data:

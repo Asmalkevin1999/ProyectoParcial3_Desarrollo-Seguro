@@ -1,61 +1,31 @@
-<div class="container mt-5">
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-5 col-lg-4">
+      <div class="card shadow border-0 rounded-4">
+        <div class="card-body p-4">
+          <div class="text-center mb-4">
+            <h2 class="fw-bold">ERP Master</h2>
+            <p class="text-muted mb-0">Autenticación segura con selección de rol</p>
+          </div>
 
-<div class="row justify-content-center">
+          <div class="mb-3">
+            <label class="form-label">Usuario</label>
+            <input class="form-control" [(ngModel)]="username" placeholder="admin" />
+          </div>
 
-<div class="col-md-4">
+          <div class="mb-3">
+            <label class="form-label">Contraseña</label>
+            <input class="form-control" type="password" [(ngModel)]="password" placeholder="Admin2026!" />
+          </div>
 
-<div class="card shadow">
+          <div *ngIf="error" class="alert alert-danger py-2">{{ error }}</div>
 
-<div class="card-header text-center">
-
-<h3>ERP Login</h3>
-
-</div>
-
-<div class="card-body">
-
-<div class="mb-3">
-
-<label>Usuario</label>
-
-<input
-
-class="form-control"
-
-[(ngModel)]="username">
-
-</div>
-
-<div class="mb-3">
-
-<label>Contraseña</label>
-
-<input
-
-type="password"
-
-class="form-control"
-
-[(ngModel)]="password">
-
-</div>
-
-<button
-
-class="btn btn-primary w-100"
-
-(click)="login()">
-
-Ingresar
-
-</button>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
+          <button class="btn btn-primary w-100" (click)="login()" [disabled]="loading">
+            <span *ngIf="!loading">Ingresar</span>
+            <span *ngIf="loading">Validando...</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>

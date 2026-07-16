@@ -10,7 +10,7 @@ export class ModulesService {
 
   private http = inject(HttpClient);
 
-  private api = `${environment.apiUrl}/modules`;
+  private api = `${environment.apiUrl}/api/modules`;
 
   getModules(): Observable<any[]> {
     return this.http.get<any[]>(this.api);

@@ -14,7 +14,7 @@ export class HrClient {
     private readonly config: ConfigService,
   ) {
 
-    this.url = this.config.get<string>('HR_SERVICE')!;
+    this.url = (this.config.get<string>('HR_SERVICE') || 'http://hr-service:3004').replace(/\/$/, '');
 
   }
 
@@ -24,7 +24,7 @@ export class HrClient {
 
       this.http.post(
 
-        `${this.url}/employees`,
+        `${this.url}/api/employees`,
         dto,
         {
           headers: {
@@ -44,7 +44,7 @@ export class HrClient {
 
       this.http.get(
 
-        `${this.url}/employees`,
+        `${this.url}/api/employees`,
         {
           headers: {
             Authorization: token,

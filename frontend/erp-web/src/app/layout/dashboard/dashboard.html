@@ -1,87 +1,77 @@
-<div class="layout">
-
-    <header class="header">
-
-        <div class="logo">
-
-            ERP MASTER
-
-        </div>
-
-        <div class="user">
-
-            <span>
-
-                {{username}}
-
-            </span>
-
-            <span class="role">
-
-                {{role}}
-
-            </span>
-
-            <button
-            (click)="logout()">
-
-                Salir
-
-            </button>
-
-        </div>
-
-    </header>
-
-    <div class="container">
-
-        <aside class="sidebar">
-
-            <div
-            *ngFor="let module of modules">
-
-                <h3>
-
-                    {{module.name}}
-
-                </h3>
-
-                <button
-
-                *ngFor="let menu of module.menus"
-
-                (click)="go(menu.url)">
-
-                    {{menu.name}}
-
-                </button>
-
-            </div>
-
-        </aside>
-
-        <main class="content">
-
-            <h1>
-
-                Bienvenido
-
-            </h1>
-
-            <p>
-
-                Sistema Administrativo
-
-            </p>
-
-        </main>
-
+<div class="container-fluid p-0 bg-light min-vh-100">
+  <header class="bg-dark text-white px-4 py-3 d-flex justify-content-between align-items-center">
+    <div>
+      <h4 class="mb-0">ERP Master</h4>
+      <small class="text-white-50">Workspace seguro por rol</small>
     </div>
+    <div class="d-flex align-items-center gap-3">
+      <div class="text-end">
+        <div class="fw-bold">{{ username }}</div>
+        <small class="text-white-50">{{ role }}</small>
+      </div>
+      <button class="btn btn-outline-light btn-sm" (click)="logout()">Salir</button>
+    </div>
+  </header>
 
-    <footer>
+  <div class="row g-0 min-vh-100">
+    <aside class="col-md-3 bg-white border-end p-3">
+      <h5 class="fw-bold mb-3">Menú dinámico</h5>
 
-        Universidad ESPE © 2026
+      <div *ngIf="error" class="alert alert-danger py-2">{{ error }}</div>
 
-    </footer>
+      <div *ngIf="loading" class="text-center py-3 text-muted">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Cargando...</span>
+        </div>
+        <div class="mt-2">Cargando menú...</div>
+      </div>
 
+      <div *ngIf="error" class="text-center my-3">
+        <div class="alert alert-danger py-2">{{ error }}</div>
+        <button class="btn btn-sm btn-outline-primary" (click)="loadMenu()">Reintentar</button>
+      </div>
+
+      <div *ngFor="let module of modules" class="mb-4">
+        <div class="fw-bold text-primary mb-2">{{ module.name }}</div>
+
+        <div *ngIf="module.menus?.length; else noMenus">
+          <div class="list-group">
+            <ng-container *ngFor="let menu of module.menus">
+              <button
+                class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                [class.font-weight-bold]="menu.children?.length"
+                (click)="go(menu.url)"
+              >
+                <span>{{ menu.name }}</span>
+                <small *ngIf="menu.children?.length" class="badge bg-secondary rounded-pill">
+                  {{ menu.children.length }}
+                </small>
+              </button>
+
+              <div *ngIf="menu.children?.length" class="ps-3">
+                <button
+                  *ngFor="let child of menu.children"
+                  class="btn btn-sm btn-outline-primary w-100 text-start mb-1"
+                  (click)="go(child.url)"
+                >
+                  {{ child.name }}
+                </button>
+              </div>
+            </ng-container>
+          </div>
+        </div>
+
+        <ng-template #noMenus>
+          <div class="text-muted">No hay menús disponibles para este módulo.</div>
+        </ng-template>
+      </div>
+    </aside>
+
+    <main class="col-md-9 p-4">
+      <div class="card shadow-sm border-0 rounded-4 p-4">
+        <h2 class="fw-bold">Bienvenido al workspace</h2>
+        <p class="text-muted mb-0">La navegación se construye desde el backend según el rol activo.</p>
+      </div>
+    </main>
+  </div>
 </div>

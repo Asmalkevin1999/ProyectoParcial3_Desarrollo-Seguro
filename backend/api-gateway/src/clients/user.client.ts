@@ -14,9 +14,9 @@ export class UserClient {
     private readonly config: ConfigService,
   ) {
 
-    this.url = this.config.get<string>(
+    this.url = (this.config.get<string>(
       'USER_SERVICE',
-    )!;
+    ) || 'http://user-service:3001').replace(/\/$/, '');
 
   }
 
@@ -30,7 +30,7 @@ export class UserClient {
 
       this.http.post(
 
-        `${this.url}/auth/login`,
+        `${this.url}/api/auth/login`,
 
         data,
 
@@ -48,7 +48,7 @@ export class UserClient {
 
       this.http.post(
 
-        `${this.url}/auth/register`,
+        `${this.url}/api/auth/register`,
 
         data,
 
@@ -70,7 +70,7 @@ export class UserClient {
 
       this.http.get(
 
-        `${this.url}/profiles`,
+        `${this.url}/api/profiles`,
 
         {
 
@@ -99,7 +99,7 @@ export class UserClient {
 
       this.http.post(
 
-        `${this.url}/profiles`,
+        `${this.url}/api/profiles`,
 
         data,
 
@@ -131,7 +131,7 @@ export class UserClient {
 
       this.http.get(
 
-        `${this.url}/sessions`,
+        `${this.url}/api/sessions`,
 
         {
 
@@ -160,7 +160,7 @@ export class UserClient {
 
       this.http.post(
 
-        `${this.url}/sessions`,
+        `${this.url}/api/sessions`,
 
         data,
 
@@ -192,7 +192,7 @@ export class UserClient {
 
       this.http.get(
 
-        `${this.url}/audit`,
+        `${this.url}/api/audit`,
 
         {
 
@@ -221,7 +221,7 @@ export class UserClient {
 
       this.http.post(
 
-        `${this.url}/audit`,
+        `${this.url}/api/audit`,
 
         data,
 

@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
 
+import { HttpHeaders } from '@angular/common/http';
+
 import { Observable } from 'rxjs';
 
 import { ApiService } from './api.service';
@@ -31,47 +33,30 @@ private api:ApiService
 ){}
 
 login(data:any):Observable<LoginResponse>{
+  const headers = new HttpHeaders({
+    'Content-Type': 'application/json',
+  });
 
-return this.api.post(
-
-'/auth/login',
-
-data
-
-) as Observable<LoginResponse>;
-
+  return this.api.post('/api/auth/login', data, {
+    headers,
+  }) as Observable<LoginResponse>;
 }
 
 register(data:any){
-
-return this.api.post(
-
-'/auth/register',
-
-data
-
-);
-
+  return this.api.post('/api/auth/register', data);
 }
 
-selectRole(
+selectRole(roleId:string):Observable<AuthResponse>{
+    const token = localStorage.getItem('tempToken');
 
-roleId:string
-
-):Observable<AuthResponse>{
-
-return this.api.post(
-
-'/auth/select-role',
-
-{
-
-roleId
-
-}
-
-) as Observable<AuthResponse>;
-
-}
-
+    return this.api.post(
+      '/api/auth/select-role',
+      { roleId },
+      {
+        headers: new HttpHeaders({
+          Authorization: token ? `Bearer ${token}` : '',
+        }),
+      },
+    ) as Observable<AuthResponse>;
+  }
 }

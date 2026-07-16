@@ -10,7 +10,7 @@ export class RoleMenusService {
 
   private http = inject(HttpClient);
 
-  private api = environment.apiUrl;
+  private api = `${environment.apiUrl}/api`;
 
   getRoles(): Observable<any[]> {
     return this.http.get<any[]>(`${this.api}/roles`);

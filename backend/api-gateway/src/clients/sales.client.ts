@@ -14,7 +14,7 @@ export class SalesClient {
     private readonly config: ConfigService,
   ) {
 
-    this.url = this.config.get<string>('SALES_SERVICE')!;
+    this.url = (this.config.get<string>('SALES_SERVICE') || 'http://sales-service:3003').replace(/\/$/, '');
 
   }
 
@@ -24,7 +24,7 @@ export class SalesClient {
 
       this.http.post(
 
-        `${this.url}/sales`,
+        `${this.url}/api/sales`,
         dto,
         {
           headers: {
@@ -44,7 +44,7 @@ export class SalesClient {
 
       this.http.get(
 
-        `${this.url}/sales`,
+        `${this.url}/api/sales`,
         {
           headers: {
             Authorization: token,
