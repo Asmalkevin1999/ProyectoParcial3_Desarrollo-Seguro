@@ -153,6 +153,8 @@ jobs:
           pip install -r ai-detector/requirements.txt
 
       - name: Run AI security scanner
+        id: ai_security_scan
+        continue-on-error: true
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -160,7 +162,7 @@ jobs:
           python ai-detector/src/ci_cd/security_check.py .
 
       - name: Notify Telegram - AI security success
-        if: always() && success() && env.TELEGRAM_TOKEN != '' && env.TELEGRAM_CHAT_ID != ''
+        if: always() && steps.ai_security_scan.outcome == 'success' && env.TELEGRAM_TOKEN != '' && env.TELEGRAM_CHAT_ID != ''
         run: |
           python - <<'PY'
           import os, urllib.parse, urllib.request
@@ -178,7 +180,7 @@ jobs:
           PY
 
       - name: Notify Telegram - AI security failure
-        if: always() && failure() && env.TELEGRAM_TOKEN != '' && env.TELEGRAM_CHAT_ID != ''
+        if: always() && steps.ai_security_scan.outcome == 'failure' && env.TELEGRAM_TOKEN != '' && env.TELEGRAM_CHAT_ID != ''
         run: |
           python - <<'PY'
           import os, urllib.parse, urllib.request
