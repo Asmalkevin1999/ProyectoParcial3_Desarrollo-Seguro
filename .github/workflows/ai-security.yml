@@ -18,6 +18,8 @@ jobs:
       contents: read
 
     env:
+      # Configure these values in GitHub repository Settings → Secrets → Actions.
+      # Do not commit bot tokens or chat IDs directly into workflow files.
       TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
 
@@ -26,7 +28,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Notify Telegram start
-        if: env.TELEGRAM_TOKEN != '' && env.TELEGRAM_CHAT_ID != ''
+        if: always()
         run: |
           python - <<'PY'
           import os
@@ -37,6 +39,7 @@ jobs:
           chat_id = os.getenv('TELEGRAM_CHAT_ID', '').strip()
 
           if not token or not chat_id:
+              print('Telegram not configured: missing TELEGRAM_TOKEN or TELEGRAM_CHAT_ID')
               raise SystemExit(0)
 
           message = (
@@ -88,7 +91,8 @@ jobs:
           python src/ci_cd/security_check.py ..
 
       - name: Notify Telegram AI security result
-        if: always() && env.TELEGRAM_TOKEN != '' && env.TELEGRAM_CHAT_ID != ''
+        if: always()
+        continue-on-error: true
         run: |
           python - <<'PY'
           import os
@@ -97,11 +101,13 @@ jobs:
 
           token = os.getenv('TELEGRAM_TOKEN', '').strip()
           chat_id = os.getenv('TELEGRAM_CHAT_ID', '').strip()
+          result = '${{ steps.ai_security_scan.outcome }}'
 
+          print(f'AI security notification step running, scan outcome={result}')
           if not token or not chat_id:
+              print('Telegram notification skipped: TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID not configured')
               raise SystemExit(0)
 
-          result = '${{ steps.ai_security_scan.outcome }}'
           if result == 'success':
               message = (
                   '✅ AI security scan completed successfully\n'
@@ -132,8 +138,9 @@ jobs:
           try:
               with urllib.request.urlopen(req, timeout=10) as response:
                   response.read()
+                  print('Telegram notification sent successfully')
           except Exception as exc:
-              print(f'Telegram notification skipped: {exc}')
+              print(f'Telegram notification could not be sent: {exc}')
           PY
 
       - name: Fail if AI security scanner failed
