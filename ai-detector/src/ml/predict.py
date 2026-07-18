@@ -12,13 +12,15 @@ model_path = os.path.join(
     "model.joblib"
 )
 
-if not os.path.exists(model_path):
-    raise FileNotFoundError(f"Modelo no encontrado en {model_path}")
+model = None
+tfidf = None
 
-saved = joblib.load(model_path)
-
-model = saved["model"]
-tfidf = saved["tfidf"]
+if os.path.exists(model_path):
+    saved = joblib.load(model_path)
+    model = saved["model"]
+    tfidf = saved["tfidf"]
+else:
+    print(f"WARNING: Modelo no encontrado en {model_path}. Usando reglas heurísticas sin ML.")
 
 
 # ==========================================
@@ -329,6 +331,33 @@ def predict_code(code):
     # ==========================
     # MODELO ML
     # ==========================
+
+    if model is None or tfidf is None:
+        print(
+            "WARNING: ML model no disponible. Usando heurística de respaldo."
+        )
+
+        dangerous_count, sanitizer_count, _, _ = extract_manual_features(
+            code
+        )
+
+        if dangerous_count > sanitizer_count and dangerous_count >= 2:
+            info = detect_vulnerability_reason(
+                code
+            )
+
+            return {
+                "result": "VULNERABLE",
+                "confidence": 70.0,
+                "vulnerability": info["vulnerability"],
+                "reason": info["reason"],
+                "recommendation": info["recommendation"]
+            }
+
+        return {
+            "result": "SAFE",
+            "confidence": 80.0
+        }
 
     tfidf_features = tfidf.transform(
         [code]

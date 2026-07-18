@@ -8,6 +8,7 @@ __pycache__/
 data/juliet/
 models/*.pkl
 models/*.joblib
+!models/model.joblib
 # Archivos temporales
 *.log
 
