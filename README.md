@@ -149,6 +149,24 @@ Authorization: Bearer {accessToken}
 - **npm** - Package manager
 - **Git** - Control de versiones
 
+### Estrategia de ramas
+- `main`: producción. Solo PR desde `test`.
+- `test`: pruebas/QA. Integración validada aquí antes de promover a `main`.
+- `dev`: desarrollo. Las ramas de feature se crean desde `dev` y se integran de vuelta a `dev`.
+
+### GitHub Actions y secretos
+- Archivo principal: `.github/workflows/ci-cd.yml`
+- Se ejecuta en `push` a `main`.
+- Requiere secretos de GitHub:
+  - `TELEGRAM_BOT_TOKEN`
+  - `TELEGRAM_CHAT_ID`
+  - `SONAR_TOKEN`
+  - `SONAR_ORGANIZATION`
+  - `SONAR_PROJECT_KEY`
+  - `RAILWAY_TOKEN` o `RENDER_TOKEN`
+  - `RENDER_SERVICE_ID` (si se usa Render)
+- Las credenciales nunca deben almacenarse en el código.
+
 ---
 
 ## ✨ Correcciones Aplicadas

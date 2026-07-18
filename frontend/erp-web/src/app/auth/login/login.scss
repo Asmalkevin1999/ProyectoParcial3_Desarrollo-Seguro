@@ -1,5 +1,29 @@
 .card{
+    border-radius: 20px;
+    border: none;
+}
 
-    border-radius:15px;
+.btn-outline-primary.active,
+.btn-outline-primary.active:hover {
+    background: #0d6efd;
+    color: white;
+    border-color: #0d6efd;
+}
 
+.form-label {
+    font-weight: 600;
+}
+
+.alert-info {
+    background-color: #e7f1ff;
+    color: #0d6efd;
+}
+
+.btn-primary {
+    border-radius: 12px;
+    padding: 12px 16px;
+}
+
+.card-body {
+    padding: 2rem;
 }

@@ -1,13 +1,21 @@
 import joblib
 import re
+import os
 
 from scipy.sparse import hstack
 from scipy.sparse import csr_matrix
 
-
-saved = joblib.load(
-    "models/model.joblib"
+# Resolver la ruta del modelo de forma relativa al directorio del proyecto
+model_path = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
+    "models",
+    "model.joblib"
 )
+
+if not os.path.exists(model_path):
+    raise FileNotFoundError(f"Modelo no encontrado en {model_path}")
+
+saved = joblib.load(model_path)
 
 model = saved["model"]
 tfidf = saved["tfidf"]

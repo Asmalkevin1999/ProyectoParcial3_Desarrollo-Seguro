@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 
 import { PrismaService } from '../database/prisma.service';
 
@@ -32,9 +32,11 @@ export class SalesService {
 
         total,
 
+        status: true,
+
         details: {
 
-          create: dto.details
+          create: dto.details.map(d => ({ ...d, status: true }))
 
         }
 

@@ -1,0 +1,318 @@
+name: PR Analysis and Telegram Summary
+
+on:
+  pull_request:
+    branches:
+      - dev
+      - test
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+
+env:
+  TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+  TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+  SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+  SONAR_ORGANIZATION: ${{ secrets.SONAR_ORGANIZATION }}
+  SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
+
+jobs:
+  build-and-test:
+    name: Build and test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Build and test backend services
+        run: |
+          set -e
+          for service in api-gateway master-service user-service inventory-service sales-service hr-service; do
+            echo "=== Backend: $service ==="
+            cd backend/$service
+            npm install
+            if [ "$service" != "api-gateway" ]; then
+              export DATABASE_URL="postgresql://postgres:postgres@localhost:5432/testdb"
+              npx prisma generate
+            fi
+            npm run build
+            npm test -- --runInBand
+            cd ../..
+          done
+
+      - name: Build and test frontend
+        run: |
+          set -e
+          cd frontend/erp-web
+          npm install
+          npm run build
+          npm run test -- --watch=false --browsers=ChromeHeadless
+
+  ai-security:
+    name: AI security analysis
+    needs: build-and-test
+    runs-on: ubuntu-latest
+
+    outputs:
+      ai_status: ${{ steps.set_ai_outputs.outputs.ai_status }}
+      ai_count: ${{ steps.set_ai_outputs.outputs.ai_count }}
+      ai_findings: ${{ steps.set_ai_outputs.outputs.ai_findings }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r ai-detector/requirements.txt
+
+      - name: Run AI analysis
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import sys
+
+          sys.path.append(os.path.abspath('ai-detector'))
+          from src.ml.scan_project import scan_project
+
+          findings = scan_project('.')
+          normalized = []
+
+          for item in findings:
+              normalized.append({
+                  'file': os.path.relpath(item['file'], '.').replace('\\', '/'),
+                  'vulnerability': item.get('vulnerability', 'Desconocido'),
+                  'confidence': item.get('confidence', ''),
+                  'reason': item.get('reason', ''),
+              })
+
+          summary = {'count': len(normalized), 'findings': normalized}
+
+          with open('ai-report.json', 'w', encoding='utf-8') as fh:
+              json.dump(summary, fh, ensure_ascii=False)
+          PY
+
+      - name: Set AI outputs
+        id: set_ai_outputs
+        run: |
+          python - <<'PY'
+          import json
+          import os
+
+          with open('ai-report.json', 'r', encoding='utf-8') as fh:
+              data = json.load(fh)
+
+          status = 'passed' if data['count'] == 0 else 'failed'
+          with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as out:
+              out.write(f"ai_status={status}\n")
+              out.write(f"ai_count={data['count']}\n")
+              out.write(f"ai_findings={json.dumps(data['findings'], ensure_ascii=False)}\n")
+          PY
+
+  sonarcloud:
+    name: SonarCloud analysis
+    needs: build-and-test
+    runs-on: ubuntu-latest
+
+    outputs:
+      sonar_quality_gate: ${{ steps.set_sonar_outputs.outputs.sonar_quality_gate }}
+      sonar_bugs: ${{ steps.set_sonar_outputs.outputs.sonar_bugs }}
+      sonar_vulnerabilities: ${{ steps.set_sonar_outputs.outputs.sonar_vulnerabilities }}
+      sonar_code_smells: ${{ steps.set_sonar_outputs.outputs.sonar_code_smells }}
+      sonar_hotspots: ${{ steps.set_sonar_outputs.outputs.sonar_hotspots }}
+      sonar_coverage: ${{ steps.set_sonar_outputs.outputs.sonar_coverage }}
+      sonar_duplication: ${{ steps.set_sonar_outputs.outputs.sonar_duplication }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: SonarCloud scan
+        id: sonar_scan
+        continue-on-error: true
+        run: |
+          npm install -g sonar-scanner
+          sonar-scanner \
+            -Dsonar.login=${{ env.SONAR_TOKEN }} \
+            -Dsonar.organization=${{ env.SONAR_ORGANIZATION }} \
+            -Dsonar.projectKey=${{ env.SONAR_PROJECT_KEY }} \
+            -Dsonar.sources=backend,frontend,ai-detector \
+            -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/coverage/**,**/.github/** \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.qualitygate.wait=true
+
+      - name: Collect Sonar metrics
+        id: set_sonar_outputs
+        run: |
+          python - <<'PY'
+          import base64
+          import json
+          import os
+          import urllib.parse
+          import urllib.request
+
+          project_key = os.getenv('SONAR_PROJECT_KEY')
+          token = os.getenv('SONAR_TOKEN')
+
+          auth = base64.b64encode(f'{token}:'.encode('utf-8')).decode('utf-8')
+          query = urllib.parse.urlencode({
+              'component': project_key,
+              'metricKeys': 'bugs,vulnerabilities,code_smells,security_hotspots,coverage,duplicated_lines_density'
+          })
+          url = f'https://sonarcloud.io/api/measures/component?{query}'
+          req = urllib.request.Request(url, headers={
+              'Authorization': f'Basic {auth}',
+              'Accept': 'application/json'
+          })
+
+          with urllib.request.urlopen(req, timeout=30) as response:
+              data = json.load(response)
+
+          measures = {m['metric']: m.get('value', '0') for m in data.get('component', {}).get('measures', [])}
+          passed = 'passed' if '${{ steps.sonar_scan.outcome }}' == 'success' else 'failed'
+
+          with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as out:
+              out.write(f'sonar_quality_gate={passed}\n')
+              out.write(f"sonar_bugs={measures.get('bugs', '0')}\n")
+              out.write(f"sonar_vulnerabilities={measures.get('vulnerabilities', '0')}\n")
+              out.write(f"sonar_code_smells={measures.get('code_smells', '0')}\n")
+              out.write(f"sonar_hotspots={measures.get('security_hotspots', '0')}\n")
+              out.write(f"sonar_coverage={measures.get('coverage', '0')}\n")
+              out.write(f"sonar_duplication={measures.get('duplicated_lines_density', '0')}\n")
+          PY
+
+  summary:
+    name: Telegram summary report
+    needs:
+      - ai-security
+      - sonarcloud
+    if: always()
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Send Telegram summary
+        if: env.TELEGRAM_TOKEN != '' && env.TELEGRAM_CHAT_ID != ''
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          AI_STATUS: ${{ needs.ai-security.outputs.ai_status }}
+          AI_COUNT: ${{ needs.ai-security.outputs.ai_count }}
+          AI_FINDINGS: ${{ needs.ai-security.outputs.ai_findings }}
+          SONAR_STATUS: ${{ needs.sonarcloud.outputs.sonar_quality_gate }}
+          SONAR_BUGS: ${{ needs.sonarcloud.outputs.sonar_bugs }}
+          SONAR_VULNERABILITIES: ${{ needs.sonarcloud.outputs.sonar_vulnerabilities }}
+          SONAR_CODE_SMELLS: ${{ needs.sonarcloud.outputs.sonar_code_smells }}
+          SONAR_HOTSPOTS: ${{ needs.sonarcloud.outputs.sonar_hotspots }}
+          SONAR_COVERAGE: ${{ needs.sonarcloud.outputs.sonar_coverage }}
+          SONAR_DUPLICATION: ${{ needs.sonarcloud.outputs.sonar_duplication }}
+          PR_NUMBER: ${{ github.event.pull_request.number || '' }}
+          PR_TITLE: ${{ github.event.pull_request.title || '' }}
+          PR_HEAD_REF: ${{ github.event.pull_request.head.ref || github.head_ref || github.ref_name }}
+          PR_BASE_REF: ${{ github.event.pull_request.base.ref || '' }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import urllib.parse
+          import urllib.request
+
+          token = os.getenv('TELEGRAM_TOKEN')
+          chat_id = os.getenv('TELEGRAM_CHAT_ID')
+          repo = os.getenv('GITHUB_REPOSITORY')
+          actor = os.getenv('GITHUB_ACTOR')
+          pr_number = os.getenv('PR_NUMBER')
+          pr_title = os.getenv('PR_TITLE')
+          head_ref = os.getenv('PR_HEAD_REF')
+          base_ref = os.getenv('PR_BASE_REF')
+
+          ai_status = os.getenv('AI_STATUS', 'passed')
+          ai_count = int(os.getenv('AI_COUNT', '0') or 0)
+          ai_findings = json.loads(os.getenv('AI_FINDINGS', '[]'))
+
+          sonar_status = os.getenv('SONAR_STATUS', 'failed')
+          sonar_bugs = os.getenv('SONAR_BUGS', '0')
+          sonar_vulnerabilities = os.getenv('SONAR_VULNERABILITIES', '0')
+          sonar_code_smells = os.getenv('SONAR_CODE_SMELLS', '0')
+          sonar_hotspots = os.getenv('SONAR_HOTSPOTS', '0')
+          sonar_coverage = os.getenv('SONAR_COVERAGE', '0')
+          sonar_duplication = os.getenv('SONAR_DUPLICATION', '0')
+
+          pr_header = 'PR #' + pr_number if pr_number else head_ref
+          title_section = f'\nTítulo\n{pr_title}\n' if pr_title else ''
+          branch_section = ''
+          if head_ref or base_ref:
+              branch_section = f'\nRama origen\n{head_ref}\nRama destino\n{base_ref}\n'
+
+          ai_section = 'IA\nSin vulnerabilidades' if ai_count == 0 else 'IA\n{} vulnerabilidades\n'.format(ai_count)
+          if ai_count > 0:
+              for finding in ai_findings[:4]:
+                  file = finding.get('file', 'desconocido')
+                  vuln = finding.get('vulnerability', 'desconocido')
+                  ai_section += f'\n• {file}\n{vuln}\n'
+
+          sonar_section = 'SonarQube\n'
+          if sonar_status == 'passed':
+              sonar_section += 'Quality Gate\nPASSED\n'
+          else:
+              sonar_section += 'Quality Gate\nFAILED\n'
+          sonar_section += f'\nBugs\n{sonar_bugs}\n\nVulnerabilidades\n{sonar_vulnerabilities}\n\nSecurity Hotspots\n{sonar_hotspots}\n\nCode Smells\n{sonar_code_smells}\n\nCoverage\n{sonar_coverage}%\n\nDuplicación\n{sonar_duplication}%\n'
+
+          status = 'MERGE PERMITIDO' if ai_status == 'passed' and sonar_status == 'passed' else '❌ MERGE BLOQUEADO'
+          if ai_status != 'passed' or sonar_status != 'passed':
+              header = '🚨 Resultado del Pull Request'
+          else:
+              header = '✅ Pull Request aprobado'
+
+          message = (
+              f'{header}\n\n'
+              f'Usuario\n{actor}\n\n'
+              f'Repositorio\n{repo}\n\n'
+              f'PR\n{pr_header}\n'
+              f'{branch_section}'
+              f'{title_section}'
+              '--------------------------------\n\n'
+              f'{ai_section}\n\n'
+              '--------------------------------\n\n'
+              f'{sonar_section}\n'
+              '--------------------------------\n\n'
+              f'Estado\n{status}'
+          )
+
+          data = urllib.parse.urlencode({
+              'chat_id': chat_id,
+              'text': message,
+              'parse_mode': 'HTML'
+          }).encode('utf-8')
+
+          req = urllib.request.Request(
+              f'https://api.telegram.org/bot{token}/sendMessage',
+              data=data,
+              headers={'Content-Type': 'application/x-www-form-urlencoded'}
+          )
+          urllib.request.urlopen(req, timeout=15)
+          PY

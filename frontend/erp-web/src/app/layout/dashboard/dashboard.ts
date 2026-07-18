@@ -8,6 +8,12 @@ import { RolesComponent } from '../../modules/roles/roles';
 import { MenusComponent } from '../../modules/menus/menus';
 import { ModulesComponent } from '../../modules/modules/modules';
 import { ProfileComponent } from '../../modules/profile/profile';
+import { UserRolesComponent } from '../../modules/user-roles/user-roles';
+import { RoleModulesComponent } from '../../modules/role-modules/role-modules';
+import { RoleMenusComponent } from '../../modules/role-menus/role-menus';
+import { SalesComponent } from '../../sales/sales';
+import { InventoryComponent } from '../../inventory/inventory';
+import { HrComponent } from '../../hr/hr';
 
 interface MenuItem {
   id: string;
@@ -48,7 +54,20 @@ interface SpecGroup {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, UsersComponent, RolesComponent, MenusComponent, ModulesComponent, ProfileComponent],
+  imports: [
+    CommonModule,
+    UsersComponent,
+    RolesComponent,
+    MenusComponent,
+    ModulesComponent,
+    ProfileComponent,
+    UserRolesComponent,
+    RoleModulesComponent,
+    RoleMenusComponent,
+    SalesComponent,
+    InventoryComponent,
+    HrComponent,
+  ],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
 })
@@ -59,9 +78,10 @@ export class DashboardComponent implements OnInit {
   loading = true;
   error = '';
   expandedModuleId = '';
-  expandedMenuIds: string[] = [];
   selectedMenu: MenuItem | null = null;
-  activeView: 'dashboard' | 'users' | 'roles' | 'menus' | 'modules' | 'profile' = 'dashboard';
+  activeMenuId: string | null = null;
+  activeView: 'dashboard' | 'users' | 'roles' | 'menus' | 'modules' | 'profile' | 'user-roles' | 'role-modules' | 'role-menus' | 'sales' | 'inventory' | 'hr' | 'generic' = 'dashboard';
+  activeRoute = '';
   workspaceTitle = 'Panel de ventas';
   workspaceSubtitle = 'Operaciones del microservicio de ventas';
   workspaceIcon = '🛍️';
@@ -156,44 +176,71 @@ export class DashboardComponent implements OnInit {
     this.expandedModuleId = this.expandedModuleId === module.id ? '' : module.id;
   }
 
-  toggleMenu(menu: MenuItem, module: ModuleMenu) {
-    if (menu.children?.length) {
-      this.expandedMenuIds = this.expandedMenuIds.includes(menu.id)
-        ? this.expandedMenuIds.filter((id) => id !== menu.id)
-        : [...this.expandedMenuIds, menu.id];
-      return;
-    }
-
-    this.openWorkspace(menu, module);
-  }
-
-  isMenuExpanded(menuId: string): boolean {
-    return this.expandedMenuIds.includes(menuId);
-  }
-
   openWorkspace(menu: MenuItem, module: ModuleMenu) {
     this.selectedMenu = menu;
+    this.activeMenuId = menu.id;
     this.expandedModuleId = module.id;
 
-    const routePath = (menu.url || '').replace(/^\/+/, '').split('/')[0] || module.id;
-    this.activeView = this.getComponentView(routePath);
-    const microservice = this.getMicroservice(routePath);
-    const bullets = this.getWorkspaceBullets(routePath, module.name, menu.name);
-    const metrics = this.getMetrics(routePath);
-    const recentOrders = this.getRecentOrders(routePath);
-    const implementationNotes = this.getImplementationNotes(routePath);
-    const endpointSpecs = this.getEndpointSpecs(routePath);
+    const rawPath = (menu.url || '').replace(/^\/+/, '');
+    const routePath = rawPath.split('/')[0] || module.id;
+    const normalizedRoute = routePath.toLowerCase();
+    const microservice = this.getMicroservice(normalizedRoute);
+    const bullets = this.getWorkspaceBullets(normalizedRoute, module.name, menu.name);
+    const metrics = this.getMetrics(normalizedRoute);
+    const recentOrders = this.getRecentOrders(normalizedRoute);
+    const implementationNotes = this.getImplementationNotes(normalizedRoute);
+    const endpointSpecs = this.getEndpointSpecs(normalizedRoute);
+
+    this.activeRoute = normalizedRoute;
+    this.activeView = this.resolveView(normalizedRoute);
 
     this.workspaceTitle = menu.name === 'Dashboard' ? 'Panel de ventas' : menu.name;
     this.workspaceSubtitle = `${module.name} • ${menu.name}`;
     this.workspaceIcon = menu.icon || module.icon || '🛍️';
-    this.workspaceSummary = this.getWorkspaceSummary(routePath, module.name, menu.name);
+    this.workspaceSummary = this.getWorkspaceSummary(normalizedRoute, module.name, menu.name);
     this.workspaceBullets = bullets;
     this.workspaceMicroservice = microservice;
     this.metrics = metrics;
     this.recentOrders = recentOrders;
     this.implementationNotes = implementationNotes;
     this.endpointSpecs = endpointSpecs;
+  }
+
+  private resolveView(routePath: string): 'dashboard' | 'users' | 'roles' | 'menus' | 'modules' | 'profile' | 'user-roles' | 'role-modules' | 'role-menus' | 'sales' | 'inventory' | 'hr' | 'generic' {
+    if (routePath === 'users' || routePath === 'user') {
+      return 'users';
+    }
+    if (routePath === 'roles') {
+      return 'roles';
+    }
+    if (routePath === 'menus') {
+      return 'menus';
+    }
+    if (routePath === 'modules') {
+      return 'modules';
+    }
+    if (routePath === 'profile') {
+      return 'profile';
+    }
+    if (routePath === 'user-roles') {
+      return 'user-roles';
+    }
+    if (routePath === 'role-modules') {
+      return 'role-modules';
+    }
+    if (routePath === 'role-menus') {
+      return 'role-menus';
+    }
+    if (routePath === 'sales') {
+      return 'sales';
+    }
+    if (routePath === 'inventory') {
+      return 'inventory';
+    }
+    if (routePath === 'hr') {
+      return 'hr';
+    }
+    return 'generic';
   }
 
   private getWorkspaceSummary(routePath: string, moduleName: string, menuName: string): string {
@@ -357,23 +404,6 @@ export class DashboardComponent implements OnInit {
     ];
   }
 
-  private getComponentView(routePath: string): 'dashboard' | 'users' | 'roles' | 'menus' | 'modules' | 'profile' {
-    switch (routePath) {
-      case 'users':
-        return 'users';
-      case 'roles':
-        return 'roles';
-      case 'menus':
-        return 'menus';
-      case 'modules':
-        return 'modules';
-      case 'profile':
-        return 'profile';
-      default:
-        return 'dashboard';
-    }
-  }
-
   private getMicroservice(routePath: string): string {
     const microservices: Record<string, string> = {
       users: 'master-service',
@@ -387,6 +417,21 @@ export class DashboardComponent implements OnInit {
     };
 
     return microservices[routePath] || 'gateway';
+  }
+
+  openProfile(): void {
+    this.activeView = 'profile';
+    this.activeRoute = 'profile';
+    this.workspaceTitle = 'Mi Perfil';
+    this.workspaceSubtitle = 'Información y ajustes del usuario actual';
+    this.workspaceIcon = '👤';
+    this.workspaceSummary = this.getWorkspaceSummary('profile', 'Perfil', 'Mi Perfil');
+    this.workspaceBullets = this.getWorkspaceBullets('profile', 'Perfil', 'Mi Perfil');
+    this.workspaceMicroservice = this.getMicroservice('profile');
+    this.metrics = this.getMetrics('profile');
+    this.recentOrders = [];
+    this.implementationNotes = this.getImplementationNotes('profile');
+    this.endpointSpecs = this.getEndpointSpecs('profile');
   }
 
   logout() {

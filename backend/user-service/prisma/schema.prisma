@@ -22,20 +22,29 @@ model UserProfile {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  createdBy String? @db.Uuid
+  updatedBy String? @db.Uuid
+
   @@map("user_profiles")
 }
 
 model UserSession {
   id String @id @default(uuid()) @db.Uuid
 
-  userId String @db.Uuid
+  masterUserId String @db.Uuid
 
   ip               String
   device           String
   browser          String
   refreshTokenHash String
 
+  status Boolean @default(true)
+
   loginAt DateTime @default(now())
+  logoutAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("user_sessions")
 }
@@ -49,6 +58,8 @@ model UserAuditLog {
   entity      String
   description String
   ip          String
+
+  status Boolean @default(true)
 
   createdAt DateTime @default(now())
 

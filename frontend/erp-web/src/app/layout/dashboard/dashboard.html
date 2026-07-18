@@ -5,6 +5,7 @@
       <small class="text-white-50">Microservicio de ventas • panel operativo</small>
     </div>
     <div class="d-flex align-items-center gap-3">
+      <button class="btn btn-outline-light btn-sm" (click)="openProfile()">Mi perfil</button>
       <div class="text-end">
         <div class="fw-bold">{{ username }}</div>
         <small class="text-white-50">{{ role }}</small>
@@ -48,14 +49,16 @@
           <div class="accordion-collapse" [class.show]="expandedModuleId === module.id">
             <div class="accordion-body p-0">
               <div *ngIf="module.menus?.length; else noMenus" class="list-group list-group-flush">
-                <ng-container *ngFor="let menu of module.menus">
+                <ng-template #menuItem let-menu let-module="module" let-level="level">
                   <button
                     class="list-group-item list-group-item-action submenu-item"
-                    (click)="menu.children?.length ? toggleMenu(menu, module) : openWorkspace(menu, module)"
+                    [class.active-menu]="activeMenuId === menu.id"
+                    [style.paddingLeft.px]="16 + level * 16"
+                    (click)="openWorkspace(menu, module)"
                   >
                     <span class="d-flex justify-content-between align-items-center">
                       <span class="d-flex align-items-center gap-2">
-                        <span class="submenu-icon">{{ menu.icon || '▸' }}</span>
+                        <span class="submenu-icon">{{ menu.icon || (menu.children?.length ? '▾' : '•') }}</span>
                         <span>{{ menu.name }}</span>
                       </span>
                       <span class="badge rounded-pill bg-light text-dark">
@@ -64,18 +67,15 @@
                     </span>
                   </button>
 
-                  <div *ngIf="menu.children?.length && isMenuExpanded(menu.id)" class="ps-4 border-start ms-3 my-2">
-                    <button
-                      *ngFor="let child of menu.children"
-                      class="btn btn-link text-start p-0 py-2 text-muted"
-                      (click)="openWorkspace(child, module)"
-                    >
-                      <span class="d-flex align-items-center gap-2">
-                        <span class="submenu-icon small">{{ child.icon || '•' }}</span>
-                        <span>{{ child.name }}</span>
-                      </span>
-                    </button>
+                  <div *ngIf="menu.children?.length" class="menu-children">
+                    <ng-container *ngFor="let child of menu.children">
+                      <ng-container *ngTemplateOutlet="menuItem; context: { $implicit: child, module: module, level: level + 1 }"></ng-container>
+                    </ng-container>
                   </div>
+                </ng-template>
+
+                <ng-container *ngFor="let menu of module.menus">
+                  <ng-container *ngTemplateOutlet="menuItem; context: { $implicit: menu, module: module, level: 0 }"></ng-container>
                 </ng-container>
               </div>
 
@@ -102,40 +102,53 @@
         </div>
 
         <ng-container [ngSwitch]="activeView">
-          <div *ngSwitchCase="'users'" class="mb-4">
+          <div *ngSwitchCase="'users'" class="mt-2">
             <app-users></app-users>
           </div>
-
-          <div *ngSwitchCase="'roles'" class="mb-4">
+          <div *ngSwitchCase="'roles'" class="mt-2">
             <app-roles></app-roles>
           </div>
-
-          <div *ngSwitchCase="'menus'" class="mb-4">
+          <div *ngSwitchCase="'menus'" class="mt-2">
             <app-menus></app-menus>
           </div>
-
-          <div *ngSwitchCase="'modules'" class="mb-4">
+          <div *ngSwitchCase="'modules'" class="mt-2">
             <app-modules></app-modules>
           </div>
-
-          <div *ngSwitchCase="'profile'" class="mb-4">
+          <div *ngSwitchCase="'profile'" class="mt-2">
             <app-profile></app-profile>
           </div>
-
+          <div *ngSwitchCase="'user-roles'" class="mt-2">
+            <app-user-roles></app-user-roles>
+          </div>
+          <div *ngSwitchCase="'role-modules'" class="mt-2">
+            <app-role-modules></app-role-modules>
+          </div>
+          <div *ngSwitchCase="'role-menus'" class="mt-2">
+            <app-role-menus></app-role-menus>
+          </div>
+          <div *ngSwitchCase="'sales'" class="mt-2">
+            <app-sales></app-sales>
+          </div>
+          <div *ngSwitchCase="'inventory'" class="mt-2">
+            <app-inventory></app-inventory>
+          </div>
+          <div *ngSwitchCase="'hr'" class="mt-2">
+            <app-hr></app-hr>
+          </div>
           <div *ngSwitchDefault>
             <div class="row g-3">
               <div class="col-lg-7">
                 <div class="card border-0 rounded-4 p-3 h-100 bg-light">
-              <div class="d-flex justify-content-between align-items-center mb-2">
-                <h5 class="fw-bold mb-0">Resumen operativo</h5>
-                <span class="badge rounded-pill bg-success-subtle text-success">En vivo</span>
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h5 class="fw-bold mb-0">Resumen operativo</h5>
+                    <span class="badge rounded-pill bg-success-subtle text-success">En vivo</span>
+                  </div>
+                  <p class="text-muted mb-3">{{ workspaceSummary }}</p>
+                  <ul class="list-group list-group-flush">
+                    <li *ngFor="let item of workspaceBullets" class="list-group-item px-0 py-2">{{ item }}</li>
+                  </ul>
+                </div>
               </div>
-              <p class="text-muted mb-3">{{ workspaceSummary }}</p>
-              <ul class="list-group list-group-flush">
-                <li *ngFor="let item of workspaceBullets" class="list-group-item px-0 py-2">{{ item }}</li>
-              </ul>
-            </div>
-          </div>
 
               <div class="col-lg-5">
                 <div class="card border-0 rounded-4 p-3 h-100 bg-primary-subtle">
@@ -151,33 +164,33 @@
             </div>
 
             <div class="row g-3 mt-1">
-          <div class="col-xl-8">
-            <div class="card border-0 rounded-4 p-3">
-              <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="fw-bold mb-0">Indicadores clave</h5>
-                <span class="text-muted small">Últimas 24 horas</span>
-              </div>
-              <div class="row g-3">
-                <div *ngFor="let metric of metrics" class="col-md-4">
-                  <div class="metric-card">
-                    <small class="text-muted">{{ metric.label }}</small>
-                    <div class="metric-value">{{ metric.value }}</div>
-                    <div class="metric-change">{{ metric.change }}</div>
+              <div class="col-xl-8">
+                <div class="card border-0 rounded-4 p-3">
+                  <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0">Indicadores clave</h5>
+                    <span class="text-muted small">Últimas 24 horas</span>
+                  </div>
+                  <div class="row g-3">
+                    <div *ngFor="let metric of metrics" class="col-md-4">
+                      <div class="metric-card">
+                        <small class="text-muted">{{ metric.label }}</small>
+                        <div class="metric-value">{{ metric.value }}</div>
+                        <div class="metric-change">{{ metric.change }}</div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
 
-          <div class="col-xl-4">
-            <div class="card border-0 rounded-4 p-3">
-              <h5 class="fw-bold mb-3">Notas de implementación</h5>
-              <ul class="list-group list-group-flush">
-                <li *ngFor="let note of implementationNotes" class="list-group-item px-0 py-2 small text-muted">{{ note }}</li>
-              </ul>
+              <div class="col-xl-4">
+                <div class="card border-0 rounded-4 p-3">
+                  <h5 class="fw-bold mb-3">Notas de implementación</h5>
+                  <ul class="list-group list-group-flush">
+                    <li *ngFor="let note of implementationNotes" class="list-group-item px-0 py-2 small text-muted">{{ note }}</li>
+                  </ul>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
 
             <div class="card border-0 rounded-4 p-3 mt-3">
               <div class="d-flex justify-content-between align-items-center mb-3">

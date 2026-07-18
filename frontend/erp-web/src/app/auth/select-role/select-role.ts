@@ -33,6 +33,7 @@ export class SelectRoleComponent {
   selectRole(role: any) {
     this.loading = true;
     this.error = '';
+    this.selectedRoleId = role?.id?.trim() || '';
 
     const roleId = role?.id?.trim();
 

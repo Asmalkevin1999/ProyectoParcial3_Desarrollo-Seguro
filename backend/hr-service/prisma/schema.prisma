@@ -8,7 +8,6 @@ datasource db {
 }
 
 model Employee {
-
   id String @id @default(uuid()) @db.Uuid
 
   firstName String
@@ -28,9 +27,60 @@ model Employee {
   status Boolean @default(true)
 
   createdAt DateTime @default(now())
-
   updatedAt DateTime @updatedAt
 
-  @@map("employees")
+  createdBy String? @db.Uuid
+  updatedBy String? @db.Uuid
 
+  attendances Attendance[]
+  payrolls Payroll[]
+
+  @@map("employees")
+}
+
+model Attendance {
+  id String @id @default(uuid()) @db.Uuid
+
+  employeeId String @db.Uuid
+
+  date DateTime
+  timeIn DateTime?
+  timeOut DateTime?
+
+  status Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  createdBy String? @db.Uuid
+  updatedBy String? @db.Uuid
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@map("attendances")
+}
+
+model Payroll {
+  id String @id @default(uuid()) @db.Uuid
+
+  employeeId String @db.Uuid
+
+  period String // YYYY-MM
+
+  baseSalary Float
+  deductions Float @default(0)
+  bonuses Float @default(0)
+  totalAmount Float
+
+  status Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  createdBy String? @db.Uuid
+  updatedBy String? @db.Uuid
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@map("payrolls")
 }

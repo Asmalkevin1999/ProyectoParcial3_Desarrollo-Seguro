@@ -8,16 +8,17 @@ export class SessionsService {
     private prisma: PrismaService,
   ) {}
 
-  create(userId: string, dto: any) {
+  create(masterUserId: string, dto: any) {
 
     return this.prisma.userSession.create({
 
       data: {
-        userId: userId,
+        masterUserId,
         ip: dto.ip,
         device: dto.device,
         browser: dto.browser,
         refreshTokenHash: dto.refreshTokenHash,
+        status: true,
       },
 
     });
@@ -28,9 +29,45 @@ export class SessionsService {
 
     return this.prisma.userSession.findMany({
 
+      where: { status: true },
+
       orderBy: {
         loginAt: 'desc',
       },
+
+    });
+
+  }
+
+  async findOne(id: string) {
+
+    return this.prisma.userSession.findFirst({
+
+      where: { id, status: true },
+
+    });
+
+  }
+
+  async update(id: string, dto: any) {
+
+    return this.prisma.userSession.update({
+
+      where: { id },
+
+      data: { ...dto, updatedAt: new Date() },
+
+    });
+
+  }
+
+  async remove(id: string) {
+
+    return this.prisma.userSession.update({
+
+      where: { id },
+
+      data: { status: false, updatedAt: new Date() },
 
     });
 
