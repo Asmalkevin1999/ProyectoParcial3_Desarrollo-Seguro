@@ -159,6 +159,42 @@ jobs:
         run: |
           python ai-detector/src/ci_cd/security_check.py .
 
+      - name: Notify Telegram - AI security success
+        if: always() && success() && env.TELEGRAM_TOKEN != '' && env.TELEGRAM_CHAT_ID != ''
+        run: |
+          python - <<'PY'
+          import os, urllib.parse, urllib.request
+          token = os.getenv('TELEGRAM_TOKEN')
+          chat_id = os.getenv('TELEGRAM_CHAT_ID')
+          message = (
+              '✅ AI security scan passed\n'
+              f'Repositorio: ${{ github.repository }}\n'
+              f'Rama: ${{ github.ref_name }}\n'
+              'No vulnerabilities detected by the AI/SAST scanner.'
+          )
+          data = urllib.parse.urlencode({'chat_id': chat_id, 'text': message}).encode('utf-8')
+          req = urllib.request.Request(f'https://api.telegram.org/bot{token}/sendMessage', data=data, headers={'Content-Type': 'application/x-www-form-urlencoded'})
+          urllib.request.urlopen(req, timeout=15)
+          PY
+
+      - name: Notify Telegram - AI security failure
+        if: always() && failure() && env.TELEGRAM_TOKEN != '' && env.TELEGRAM_CHAT_ID != ''
+        run: |
+          python - <<'PY'
+          import os, urllib.parse, urllib.request
+          token = os.getenv('TELEGRAM_TOKEN')
+          chat_id = os.getenv('TELEGRAM_CHAT_ID')
+          message = (
+              '❌ AI security scan found issues\n'
+              f'Repositorio: ${{ github.repository }}\n'
+              f'Rama: ${{ github.ref_name }}\n'
+              'Revisa los resultados del análisis de seguridad y los archivos marcados.'
+          )
+          data = urllib.parse.urlencode({'chat_id': chat_id, 'text': message}).encode('utf-8')
+          req = urllib.request.Request(f'https://api.telegram.org/bot{token}/sendMessage', data=data, headers={'Content-Type': 'application/x-www-form-urlencoded'})
+          urllib.request.urlopen(req, timeout=15)
+          PY
+
   deploy:
     name: Deploy to Railway/Render
     needs: ai-security
