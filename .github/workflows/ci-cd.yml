@@ -1,9 +1,17 @@
 name: CI/CD Main Pipeline
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
+      - dev
+      - test
+  pull_request:
+    branches:
+      - main
+      - dev
+      - test
 
 env:
   # Configure these values in GitHub repository Settings → Secrets → Actions.
