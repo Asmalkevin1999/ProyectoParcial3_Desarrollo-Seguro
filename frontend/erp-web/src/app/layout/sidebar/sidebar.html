@@ -1,0 +1,25 @@
+<div class="sidebar">
+
+  @for(module of modules;track module.id){
+
+    <div class="module">
+
+      <h5>
+        {{module.name}}
+      </h5>
+
+      @for(menu of module.menus;track menu.id){
+
+        <a
+          [routerLink]="menu.url"
+        >
+          {{menu.name}}
+        </a>
+
+      }
+
+    </div>
+
+  }
+
+</div>

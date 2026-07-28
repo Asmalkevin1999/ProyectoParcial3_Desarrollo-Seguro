@@ -1,0 +1,51 @@
+name: Secure CI/CD
+
+on:
+  push:
+    branches:
+      - dev
+      - main
+
+  pull_request:
+    branches:
+      - dev
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        service:
+          - api-gateway
+          - master-service
+          - user-service
+          - inventory-service
+          - sales-service
+          - hr-service
+
+    defaults:
+      run:
+        working-directory: backend/${{ matrix.service }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Prisma Generate
+        if: matrix.service != 'api-gateway'
+        env:
+          DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/testdb"
+        run: npx prisma generate
+
+      - name: Build project
+        run: npm run build

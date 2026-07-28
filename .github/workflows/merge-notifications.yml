@@ -1,0 +1,36 @@
+name: Merge Notifications
+
+on:
+  push:
+    branches:
+      - dev
+      - test
+
+env:
+  TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+  TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+
+jobs:
+  notify-merge:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Notify Telegram of successful merge
+        if: env.TELEGRAM_TOKEN != '' && env.TELEGRAM_CHAT_ID != ''
+        env:
+          BRANCH_NAME: ${{ github.ref_name }}
+        run: |
+          python - <<'PY'
+          import os, urllib.parse, urllib.request
+          token = os.getenv('TELEGRAM_TOKEN')
+          chat_id = os.getenv('TELEGRAM_CHAT_ID')
+          branch = os.getenv('BRANCH_NAME', os.getenv('GITHUB_REF', ''))
+          message = (
+              '🔀 Merge completado en rama ' + branch + '\n'
+              f'Repositorio: ${{ github.repository }}\n'
+              'Revisa la rama para validación y QA.'
+          )
+          data = urllib.parse.urlencode({'chat_id': chat_id, 'text': message}).encode('utf-8')
+          req = urllib.request.Request(f'https://api.telegram.org/bot{token}/sendMessage', data=data, headers={'Content-Type': 'application/x-www-form-urlencoded'})
+          urllib.request.urlopen(req, timeout=15)
+          PY

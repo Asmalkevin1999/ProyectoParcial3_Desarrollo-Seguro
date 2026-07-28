@@ -1,0 +1,161 @@
+<div class="container-fluid mt-4">
+
+    <div class="card shadow">
+
+        <div class="card-header bg-primary text-white">
+
+            <h4>
+
+                Asignar Menú al Rol
+
+            </h4>
+
+        </div>
+
+        <div class="card-body">
+
+            <form
+                [formGroup]="form"
+                (ngSubmit)="save()">
+
+                <div class="row">
+
+                    <div class="col-md-6">
+
+                        <label class="form-label">
+
+                            Rol
+
+                        </label>
+
+                        <select
+                            class="form-select"
+                            formControlName="roleId">
+
+                            <option value="">
+
+                                Seleccione
+
+                            </option>
+
+                            @for(role of roles; track role.id){
+
+                            <option [value]="role.id">
+
+                                {{role.name}}
+
+                            </option>
+
+                            }
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-6">
+
+                        <label class="form-label">
+
+                            Menú
+
+                        </label>
+
+                        <select
+                            class="form-select"
+                            formControlName="menuId">
+
+                            <option value="">
+
+                                Seleccione
+
+                            </option>
+
+                            @for(menu of menus; track menu.id){
+
+                            <option [value]="menu.id">
+
+                                {{menu.name}}
+
+                            </option>
+
+                            }
+
+                        </select>
+
+                    </div>
+
+                </div>
+
+                <br>
+
+                <button class="btn btn-success">
+
+                    Asignar
+
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+    <div class="card mt-4 shadow">
+
+        <div class="card-header bg-dark text-white">
+
+            Asignaciones
+
+        </div>
+
+        <div class="table-responsive">
+
+            <table class="table table-hover">
+
+                <thead>
+
+                    <tr>
+
+                        <th>Rol</th>
+                        <th>Menú</th>
+                        <th></th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    @for(item of assignments; track item.id){
+
+                    <tr>
+
+                        <td>{{item.role.name}}</td>
+
+                        <td>{{item.menu.name}}</td>
+
+                        <td>
+
+                            <button
+                                class="btn btn-danger btn-sm"
+                                (click)="remove(item.id)">
+
+                                Eliminar
+
+                            </button>
+
+                        </td>
+
+                    </tr>
+
+                    }
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>

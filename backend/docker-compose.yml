@@ -1,0 +1,83 @@
+services:
+
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    restart: always
+    ports:
+      - "3005:3005"
+    env_file:
+      - ./api-gateway/.env
+    depends_on:
+      - master-service
+      - user-service
+      - inventory-service
+      - sales-service
+      - hr-service
+
+  master-service:
+    build: ./master-service
+    container_name: master-service
+    restart: always
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./master-service/.env
+    environment:
+      DATABASE_URL: postgresql://master_user:Master2026!@postgres:5432/master_gateway?schema=public
+      JWT_ACCESS_SECRET: MasterGatewayAccessSecret2026_ESPE_Parcial3
+      JWT_REFRESH_SECRET: MasterGatewayRefreshSecret2026_ESPE_Parcial3
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres
+    restart: always
+    environment:
+      POSTGRES_DB: master_gateway
+      POSTGRES_USER: master_user
+      POSTGRES_PASSWORD: Master2026!
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  user-service:
+    build: ./user-service
+    container_name: user-service
+    restart: always
+    ports:
+      - "3001:3001"
+    env_file:
+      - ./user-service/.env
+
+  inventory-service:
+    build: ./inventory-service
+    container_name: inventory-service
+    restart: always
+    ports:
+      - "3002:3002"
+    env_file:
+      - ./inventory-service/.env
+
+  sales-service:
+    build: ./sales-service
+    container_name: sales-service
+    restart: always
+    ports:
+      - "3003:3003"
+    env_file:
+      - ./sales-service/.env
+
+  hr-service:
+    build: ./hr-service
+    container_name: hr-service
+    restart: always
+    ports:
+      - "3004:3004"
+    env_file:
+      - ./hr-service/.env
+
+volumes:
+  postgres_data:

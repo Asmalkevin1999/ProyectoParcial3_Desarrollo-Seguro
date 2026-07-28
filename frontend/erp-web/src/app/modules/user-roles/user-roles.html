@@ -1,0 +1,168 @@
+<div class="container-fluid mt-4">
+
+    <div class="card shadow">
+
+        <div class="card-header bg-primary text-white">
+
+            <h4>
+
+                Asignar Rol a Usuario
+
+            </h4>
+
+        </div>
+
+        <div class="card-body">
+
+            <form [formGroup]="form"
+                  (ngSubmit)="save()">
+
+                <div class="row">
+
+                    <div class="col-md-6">
+
+                        <label class="form-label">
+
+                            Usuario
+
+                        </label>
+
+                        <select
+                            class="form-select"
+                            formControlName="userId">
+
+                            <option value="">
+
+                                Seleccione
+
+                            </option>
+
+                            @for(user of users; track user.id){
+
+                                <option [value]="user.id">
+
+                                    {{user.username}}
+
+                                </option>
+
+                            }
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-6">
+
+                        <label class="form-label">
+
+                            Rol
+
+                        </label>
+
+                        <select
+                            class="form-select"
+                            formControlName="roleId">
+
+                            <option value="">
+
+                                Seleccione
+
+                            </option>
+
+                            @for(role of roles; track role.id){
+
+                                <option [value]="role.id">
+
+                                    {{role.name}}
+
+                                </option>
+
+                            }
+
+                        </select>
+
+                    </div>
+
+                </div>
+
+                <br>
+
+                <button class="btn btn-success">
+
+                    Asignar Rol
+
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+    <div class="card shadow mt-4">
+
+        <div class="card-header bg-dark text-white">
+
+            Asignaciones
+
+        </div>
+
+        <div class="table-responsive">
+
+            <table class="table table-hover">
+
+                <thead>
+
+                    <tr>
+
+                        <th>Usuario</th>
+                        <th>Rol</th>
+                        <th></th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    @for(item of assignments; track item.id){
+
+                    <tr>
+
+                        <td>
+
+                            {{item.user.username}}
+
+                        </td>
+
+                        <td>
+
+                            {{item.role.name}}
+
+                        </td>
+
+                        <td>
+
+                            <button
+                                class="btn btn-danger btn-sm"
+                                (click)="remove(item.id)">
+
+                                Eliminar
+
+                            </button>
+
+                        </td>
+
+                    </tr>
+
+                    }
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>

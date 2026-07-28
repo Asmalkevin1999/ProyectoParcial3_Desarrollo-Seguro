@@ -1,0 +1,134 @@
+import { Injectable } from '@nestjs/common';
+import { HttpService } from '@nestjs/axios';
+import { ConfigService } from '@nestjs/config';
+
+import { firstValueFrom } from 'rxjs';
+
+@Injectable()
+export class InventoryClient {
+
+  private readonly url: string;
+
+  constructor(
+
+    private readonly http: HttpService,
+
+    private readonly config: ConfigService,
+
+  ) {
+
+    this.url = (this.config.get<string>(
+      'INVENTORY_SERVICE',
+    ) || 'http://inventory-service:3002').replace(/\/$/, '');
+
+  }
+
+  async findCategories(token: string) {
+
+    const response = await firstValueFrom(
+
+      this.http.get(
+
+        `${this.url}/api/categories`,
+
+        {
+
+          headers: {
+
+            Authorization: token,
+
+          },
+
+        },
+
+      ),
+
+    );
+
+    return response.data;
+
+  }
+
+  async createCategory(token: string, dto: any) {
+
+    const response = await firstValueFrom(
+
+      this.http.post(
+
+        `${this.url}/api/categories`,
+
+        dto,
+
+        {
+
+          headers: {
+
+            Authorization: token,
+
+          },
+
+        },
+
+      ),
+
+    );
+
+    return response.data;
+
+  }
+
+  async findProducts(token: string) {
+
+    const response = await firstValueFrom(
+
+      this.http.get(
+
+        `${this.url}/api/products`,
+
+        {
+
+          headers: {
+
+            Authorization: token,
+
+          },
+
+        },
+
+      ),
+
+    );
+
+    return response.data;
+
+  }
+
+  async createProduct(token: string, dto: any) {
+
+    const response = await firstValueFrom(
+
+      this.http.post(
+
+        `${this.url}/api/products`,
+
+        dto,
+
+        {
+
+          headers: {
+
+            Authorization: token,
+
+          },
+
+        },
+
+      ),
+
+    );
+
+    return response.data;
+
+  }
+
+}

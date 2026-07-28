@@ -1,0 +1,31 @@
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card shadow border-0 rounded-4">
+        <div class="card-body p-4">
+          <div class="text-center mb-4">
+            <h2 class="fw-bold">Seleccione el rol</h2>
+            <p class="text-muted mb-0">El acceso queda limitado al contexto del rol elegido.</p>
+          </div>
+
+          <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+          <div *ngIf="roles.length === 0" class="alert alert-warning">No hay roles disponibles. Inicie sesión con una cuenta válida para recibir roles.</div>
+
+          <div class="d-grid gap-2">
+            <button
+              *ngFor="let role of roles"
+              class="btn btn-outline-primary text-start"
+              [class.active]="selectedRoleId === role.id"
+              (click)="selectRole(role)"
+              [disabled]="loading"
+            >
+              <div class="fw-bold">{{ role.name }}</div>
+              <small class="text-muted">{{ role.description || 'Rol disponible' }}</small>
+            </button>
+          </div>
+          <div *ngIf="roles.length > 0" class="mt-3 text-center small text-muted">Seleccione el rol que desea usar en esta sesión.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
