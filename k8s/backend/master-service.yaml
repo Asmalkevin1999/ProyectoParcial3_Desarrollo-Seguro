@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: master-service
+  namespace: parcial3
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: master-service
+  template:
+    metadata:
+      labels:
+        app: master-service
+    spec:
+      containers:
+        - name: master-service
+          image: master-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
+          env:
+            - name: PORT
+              value: "3000"
+            - name: NODE_ENV
+              value: "production"
+            - name: DATABASE_URL
+              value: postgresql://master_user:Master2026!@postgres:5432/master_gateway?schema=public
+            - name: JWT_ACCESS_SECRET
+              value: MasterGatewayAccessSecret2026_ESPE_Parcial3
+            - name: JWT_REFRESH_SECRET
+              value: MasterGatewayRefreshSecret2026_ESPE_Parcial3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: master-service
+  namespace: parcial3
+spec:
+  selector:
+    app: master-service
+  ports:
+    - port: 3000
+      targetPort: 3000

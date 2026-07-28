@@ -6,6 +6,7 @@ import { AppModule } from './app.module';
 
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { RolesGuard } from './auth/guards/roles.guard';
+import { seedReservationsModule } from '../prisma/seed-reservations';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -23,6 +24,10 @@ async function bootstrap() {
   );
 
   app.useGlobalGuards(app.get(JwtAuthGuard), app.get(RolesGuard));
+
+  await seedReservationsModule();
+
+  await seedReservationsModule();
 
   const port = Number(process.env.PORT || 3000);
   await app.listen(port);

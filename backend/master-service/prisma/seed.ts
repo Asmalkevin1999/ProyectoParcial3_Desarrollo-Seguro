@@ -1535,6 +1535,378 @@ async function main() {
   }
 
   // ===================================
+  // MODULO RESERVAS
+  // ===================================
+
+  const reservationsModule =
+    await prisma.module.upsert({
+
+      where: {
+
+        name: 'Reservas',
+
+      },
+
+      update: {},
+
+      create: {
+
+        name: 'Reservas',
+
+        description:
+          'Gestión de hoteles, huéspedes y reservas',
+
+        icon: '🏨',
+
+      },
+
+    });
+
+  const hotelsMenu =
+    await prisma.menu.findFirst({
+
+      where: {
+
+        name: 'Hoteles',
+
+        moduleId: reservationsModule.id,
+
+      },
+
+    });
+
+  if (!hotelsMenu) {
+
+    await prisma.menu.create({
+
+      data: {
+
+        name: 'Hoteles',
+
+        url: '/reservations/hotels',
+
+        order: 1,
+
+        moduleId: reservationsModule.id,
+
+      },
+
+    });
+
+  }
+
+  const guestsMenu =
+    await prisma.menu.findFirst({
+
+      where: {
+
+        name: 'Huéspedes',
+
+        moduleId: reservationsModule.id,
+
+      },
+
+    });
+
+  if (!guestsMenu) {
+
+    await prisma.menu.create({
+
+      data: {
+
+        name: 'Huéspedes',
+
+        url: '/reservations/guests',
+
+        order: 2,
+
+        moduleId: reservationsModule.id,
+
+      },
+
+    });
+
+  }
+
+  const reservationsMenu =
+    await prisma.menu.findFirst({
+
+      where: {
+
+        name: 'Reservas',
+
+        moduleId: reservationsModule.id,
+
+      },
+
+    });
+
+  if (!reservationsMenu) {
+
+    await prisma.menu.create({
+
+      data: {
+
+        name: 'Reservas',
+
+        url: '/reservations/list',
+
+        order: 3,
+
+        moduleId: reservationsModule.id,
+
+      },
+
+    });
+
+  }
+
+  const statsMenu =
+    await prisma.menu.findFirst({
+
+      where: {
+
+        name: 'Estadísticas',
+
+        moduleId: reservationsModule.id,
+
+      },
+
+    });
+
+  if (!statsMenu) {
+
+    await prisma.menu.create({
+
+      data: {
+
+        name: 'Estadísticas',
+
+        url: '/reservations/stats',
+
+        order: 4,
+
+        moduleId: reservationsModule.id,
+
+      },
+
+    });
+
+  }
+
+  const roleReservationsModule =
+    await prisma.roleModule.findFirst({
+
+      where: {
+
+        roleId: adminRole.id,
+
+        moduleId: reservationsModule.id,
+
+      },
+
+    });
+
+  if (!roleReservationsModule) {
+
+    await prisma.roleModule.create({
+
+      data: {
+
+        roleId: adminRole.id,
+
+        moduleId: reservationsModule.id,
+
+      },
+
+    });
+
+  }
+
+  const hotelsMenuDoc =
+    await prisma.menu.findFirst({
+
+      where: {
+
+        name: 'Hoteles',
+
+        moduleId: reservationsModule.id,
+
+      },
+
+    });
+
+  if (hotelsMenuDoc) {
+
+    const roleMenuHotels =
+      await prisma.roleMenu.findFirst({
+
+        where: {
+
+          roleId: adminRole.id,
+
+          menuId: hotelsMenuDoc.id,
+
+        },
+
+      });
+
+    if (!roleMenuHotels) {
+
+      await prisma.roleMenu.create({
+
+        data: {
+
+          roleId: adminRole.id,
+
+          menuId: hotelsMenuDoc.id,
+
+        },
+
+      });
+
+    }
+
+  }
+
+  const guestsMenuDoc =
+    await prisma.menu.findFirst({
+
+      where: {
+
+        name: 'Huéspedes',
+
+        moduleId: reservationsModule.id,
+
+      },
+
+    });
+
+  if (guestsMenuDoc) {
+
+    const roleMenuGuests =
+      await prisma.roleMenu.findFirst({
+
+        where: {
+
+          roleId: adminRole.id,
+
+          menuId: guestsMenuDoc.id,
+
+        },
+
+      });
+
+    if (!roleMenuGuests) {
+
+      await prisma.roleMenu.create({
+
+        data: {
+
+          roleId: adminRole.id,
+
+          menuId: guestsMenuDoc.id,
+        },
+
+      });
+
+    }
+
+  }
+
+  const reservationsMenuDoc =
+    await prisma.menu.findFirst({
+
+      where: {
+
+        name: 'Reservas',
+
+        moduleId: reservationsModule.id,
+
+      },
+
+    });
+
+  if (reservationsMenuDoc) {
+
+    const roleMenuReservations =
+      await prisma.roleMenu.findFirst({
+
+        where: {
+
+          roleId: adminRole.id,
+
+          menuId: reservationsMenuDoc.id,
+
+        },
+
+      });
+
+    if (!roleMenuReservations) {
+
+      await prisma.roleMenu.create({
+
+        data: {
+
+          roleId: adminRole.id,
+
+          menuId: reservationsMenuDoc.id,
+
+        },
+
+      });
+
+    }
+
+  }
+
+  const statsMenuDoc =
+    await prisma.menu.findFirst({
+
+      where: {
+
+        name: 'Estadísticas',
+
+        moduleId: reservationsModule.id,
+
+      },
+
+    });
+
+  if (statsMenuDoc) {
+
+    const roleMenuStats =
+      await prisma.roleMenu.findFirst({
+
+        where: {
+
+          roleId: adminRole.id,
+
+          menuId: statsMenuDoc.id,
+
+        },
+
+      });
+
+    if (!roleMenuStats) {
+
+      await prisma.roleMenu.create({
+
+        data: {
+
+          roleId: adminRole.id,
+
+          menuId: statsMenuDoc.id,
+
+        },
+
+      });
+
+    }
+
+  }
+
+  // ===================================
   // MODULO PERFIL
   // ===================================
 
@@ -1847,6 +2219,7 @@ async function main() {
   console.log('✅ Recursos Humanos (Empleados, Nómina, Asistencia)');
   console.log('✅ Usuarios (Lista, Roles, Permisos)');
   console.log('✅ Perfil (Mi Perfil, Configuración, Cambiar Contraseña)');
+  console.log('✅ Reservas (Hoteles, Huéspedes, Reservas, Estadísticas)');
   console.log('=================================');
 
 }

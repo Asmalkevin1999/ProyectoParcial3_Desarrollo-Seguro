@@ -28,12 +28,14 @@ import { InventoryModule } from './inventory/inventory.module';
 import { SalesModule } from './sales/sales.module';
 
 import { HrModule } from './hr/hr.module';
+import { ReservationsModule } from './reservations/reservations.module';
 
 import { MenusController } from './menus/menus.controller';
 import { ModulesController } from './modules/modules.controller';
 import { RolesController } from './roles/roles.controller';
 
 import { MasterController } from './controllers/master.controller';
+import { ReservationsController } from './controllers/reservations.controller';
 
 @Module({
   imports: [
@@ -67,6 +69,7 @@ import { MasterController } from './controllers/master.controller';
     SalesModule,
 
     HrModule,
+    ReservationsModule,
 
   ],
 
@@ -89,6 +92,7 @@ import { MasterController } from './controllers/master.controller';
     RolesController,
 
     MasterController,
+    ReservationsController,
 
   ],
 

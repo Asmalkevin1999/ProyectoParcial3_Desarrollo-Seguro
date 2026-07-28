@@ -12,4 +12,6 @@ export default registerAs('http', () => ({
 
   hr: process.env.HR_SERVICE,
 
+  reservations: process.env.RESERVATIONS_SERVICE,
+
 }));

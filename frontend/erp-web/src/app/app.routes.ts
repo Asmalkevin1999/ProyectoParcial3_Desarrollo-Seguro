@@ -173,6 +173,34 @@ export const routes: Routes = [
     data: { title: 'Asistencia', subtitle: 'Registro de asistencias', icon: '🕒' },
     canActivate:[authGuard]
   },
+
+  {
+    path:'reservations/hotels',
+    component: ModulePageComponent,
+    data: { title: 'Hoteles', subtitle: 'Gestión de hoteles', icon: '🏨' },
+    canActivate:[authGuard]
+  },
+
+  {
+    path:'reservations/guests',
+    component: ModulePageComponent,
+    data: { title: 'Huéspedes', subtitle: 'Gestión de huéspedes', icon: '👤' },
+    canActivate:[authGuard]
+  },
+
+  {
+    path:'reservations/list',
+    component: ModulePageComponent,
+    data: { title: 'Reservas', subtitle: 'Gestión de reservas', icon: '🗓️' },
+    canActivate:[authGuard]
+  },
+
+  {
+    path:'reservations/stats',
+    component: ModulePageComponent,
+    data: { title: 'Estadísticas', subtitle: 'Estadísticas de reservas', icon: '📈' },
+    canActivate:[authGuard]
+  },
   {
   path:'user-roles',
   loadComponent:()=>
